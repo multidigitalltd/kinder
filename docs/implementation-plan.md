@@ -62,3 +62,18 @@ The next quality step is visual QA against the Lovable prototype in browser view
 - Shortcodes/blocks for reusable store sections.
 - Admin settings and future integrations.
 - Any logic that must persist if the theme changes.
+
+## Product Data Fields
+
+`kindertoys-core` currently adds these WooCommerce product fields:
+
+- Recommended age.
+- Custom badge.
+- Brand label.
+- Pieces / units.
+- Players.
+- Play/build time.
+- Product highlights, one per line.
+- In the box, one item per line.
+
+The theme reads these fields on single product pages and product cards. Empty fields are ignored, so editors can fill only what is relevant per product.

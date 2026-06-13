@@ -34,6 +34,12 @@ function kindertoys_woocommerce_hooks(): void
     remove_action('woocommerce_after_shop_loop_item', 'woocommerce_template_loop_add_to_cart', 10);
     add_action('woocommerce_after_shop_loop_item', 'kindertoys_product_card_actions', 10);
 
+    add_action('woocommerce_single_product_summary', 'kindertoys_single_product_brand', 4);
+    add_action('woocommerce_single_product_summary', 'kindertoys_single_product_facts', 25);
+    add_action('woocommerce_single_product_summary', 'kindertoys_single_product_highlights', 26);
+    add_action('woocommerce_single_product_summary', 'kindertoys_single_product_trust', 35);
+
+    add_filter('woocommerce_product_tabs', 'kindertoys_product_tabs');
     add_filter('woocommerce_add_to_cart_fragments', 'kindertoys_cart_fragments');
 }
 
@@ -102,6 +108,136 @@ function kindertoys_product_card_actions(): void
         ])),
     ]);
     echo '</div>';
+}
+
+function kindertoys_single_product_brand(): void
+{
+    global $product;
+
+    if (! $product instanceof WC_Product || ! function_exists('kindertoys_core_get_product_meta')) {
+        return;
+    }
+
+    $brand = kindertoys_core_get_product_meta($product, 'brand_label');
+    $badge = kindertoys_core_get_product_meta($product, 'badge');
+
+    if ('' === $brand && '' === $badge && ! $product->is_on_sale()) {
+        return;
+    }
+
+    echo '<div class="kt-single-kicker">';
+
+    if ('' !== $brand) {
+        echo '<span class="kt-single-kicker__brand">' . esc_html($brand) . '</span>';
+    }
+
+    if ($product->is_on_sale()) {
+        echo '<span class="kt-badge kt-badge--inline">' . esc_html__('מבצע', 'kindertoys') . '</span>';
+    } elseif ('' !== $badge) {
+        echo '<span class="kt-badge kt-badge--inline">' . esc_html($badge) . '</span>';
+    }
+
+    echo '</div>';
+}
+
+function kindertoys_single_product_facts(): void
+{
+    global $product;
+
+    if (! $product instanceof WC_Product || ! function_exists('kindertoys_core_get_product_meta')) {
+        return;
+    }
+
+    $facts = [
+        __('גיל', 'kindertoys') => kindertoys_core_get_product_meta($product, 'age'),
+        __('חלקים', 'kindertoys') => kindertoys_core_get_product_meta($product, 'pieces'),
+        __('זמן', 'kindertoys') => kindertoys_core_get_product_meta($product, 'play_time'),
+        __('שחקנים', 'kindertoys') => kindertoys_core_get_product_meta($product, 'players'),
+    ];
+
+    $facts = array_filter($facts);
+
+    if (empty($facts)) {
+        return;
+    }
+
+    echo '<dl class="kt-product-facts">';
+    foreach ($facts as $label => $value) {
+        echo '<div><dt>' . esc_html($label) . '</dt><dd>' . esc_html($value) . '</dd></div>';
+    }
+    echo '</dl>';
+}
+
+function kindertoys_single_product_highlights(): void
+{
+    global $product;
+
+    if (! $product instanceof WC_Product || ! function_exists('kindertoys_core_get_product_meta_lines')) {
+        return;
+    }
+
+    $highlights = kindertoys_core_get_product_meta_lines($product, 'highlights');
+
+    if (empty($highlights)) {
+        return;
+    }
+
+    echo '<ul class="kt-product-highlights">';
+    foreach ($highlights as $highlight) {
+        echo '<li>' . kindertoys_svg_icon('check') . '<span>' . esc_html($highlight) . '</span></li>';
+    }
+    echo '</ul>';
+}
+
+function kindertoys_single_product_trust(): void
+{
+    $items = [
+        ['truck', __('משלוח חינם מעל 299 ₪', 'kindertoys')],
+        ['rotate', __('החזרה תוך 14 יום', 'kindertoys')],
+        ['shield', __('תשלום מאובטח', 'kindertoys')],
+    ];
+
+    echo '<div class="kt-product-trust">';
+    foreach ($items as [$icon, $label]) {
+        echo '<span>' . kindertoys_svg_icon($icon) . esc_html($label) . '</span>';
+    }
+    echo '</div>';
+}
+
+function kindertoys_product_tabs(array $tabs): array
+{
+    global $product;
+
+    if (! $product instanceof WC_Product || ! function_exists('kindertoys_core_get_product_meta_lines')) {
+        return $tabs;
+    }
+
+    $in_box = kindertoys_core_get_product_meta_lines($product, 'in_box');
+
+    if (! empty($in_box)) {
+        $tabs['kindertoys_in_box'] = [
+            'title' => __('מה בקופסה?', 'kindertoys'),
+            'priority' => 18,
+            'callback' => 'kindertoys_in_box_tab',
+        ];
+    }
+
+    return $tabs;
+}
+
+function kindertoys_in_box_tab(): void
+{
+    global $product;
+
+    if (! $product instanceof WC_Product || ! function_exists('kindertoys_core_get_product_meta_lines')) {
+        return;
+    }
+
+    echo '<div class="kt-in-box"><ul>';
+    foreach (kindertoys_core_get_product_meta_lines($product, 'in_box') as $item) {
+        echo '<li>' . kindertoys_svg_icon('gift') . '<span>' . esc_html($item) . '</span></li>';
+    }
+    echo '</ul></div>';
 }
 
 function kindertoys_cart_fragments(array $fragments): array
