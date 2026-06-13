@@ -22,14 +22,31 @@ WordPress + WooCommerce
 
 ## Conversion Order
 
-1. Foundation: theme setup, Woo support, menus, image sizes, CSS tokens.
-2. Header and footer: native menus, search, cart count, account links, mobile navigation.
-3. Product cards and loops: use WooCommerce product objects.
-4. Home page sections: render from selected categories/products and theme/plugin settings.
+1. Foundation: theme setup, Woo support, menus, image sizes, CSS tokens. Done.
+2. Header and footer: native menus, search, cart count, account links, mobile navigation. Initial version done.
+3. Product cards and loops: use WooCommerce product objects. Initial loop styling done.
+4. Home page sections: render from selected categories/products and theme/plugin settings. First native pass done.
 5. Product page: gallery, buy box, facts, tabs, related products.
 6. Archive pages: categories, filters, ordering, pagination.
 7. Cart/checkout/account polish.
 8. Accessibility, cache, Core Web Vitals, SEO schema review.
+
+## Current Home Page Status
+
+The home page now has native WordPress/PHP equivalents for the main Lovable sections:
+
+- Hero with mascot, proof strip, and CTA layout.
+- USP strip.
+- WooCommerce category grid.
+- Promo banners.
+- WooCommerce product grid.
+- Age rail.
+- Brands strip.
+- Kindy club zone.
+- Values cards.
+- Store information section.
+
+The next quality step is visual QA against the Lovable prototype in browser viewports, followed by spacing, typography, and mobile corrections.
 
 ## Keep In Theme
 
