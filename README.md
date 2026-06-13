@@ -24,3 +24,17 @@ Copy or symlink:
 - `plugins/kindertoys-core` to `wp-content/plugins/kindertoys-core`
 
 Then activate WooCommerce, the plugin, and the theme.
+
+## Current Status
+
+Implemented:
+
+- Lean WooCommerce theme foundation.
+- KinderToys Core plugin for product fields and reusable category sections.
+- Header with search, cart count, account/wishlist links, fallback mega menu and mobile drawer.
+- Lovable-inspired home page sections rendered natively in PHP.
+- WooCommerce product cards, product page facts/highlights/tabs, archive polish.
+- Cart, checkout and account styling without deep template overrides.
+- Cache and staging QA documentation.
+
+Still requires staging verification with real WooCommerce data, payment gateways and shipping methods.
