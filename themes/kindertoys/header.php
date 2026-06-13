@@ -1,0 +1,83 @@
+<?php
+/**
+ * Site header.
+ *
+ * @package KinderToys
+ */
+
+declare(strict_types=1);
+?><!doctype html>
+<html <?php language_attributes(); ?> dir="rtl">
+<head>
+    <meta charset="<?php bloginfo('charset'); ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <?php wp_head(); ?>
+</head>
+<body <?php body_class(); ?>>
+<?php wp_body_open(); ?>
+<a class="skip-link" href="#primary"><?php esc_html_e('Skip to content', 'kindertoys'); ?></a>
+
+<header class="kt-header" data-site-header>
+    <div class="kt-shipping-bar">
+        <span class="kt-icon"><?php echo kindertoys_svg_icon('truck'); ?></span>
+        <span><?php esc_html_e('׳׳©׳׳•׳— ׳׳”׳™׳¨ ׳—׳™׳ ׳ ׳׳¢׳ 299 ג‚× | ׳׳•׳¢׳“׳•׳ ׳”׳׳§׳•׳—׳•׳× - 10% ׳”׳ ׳—׳” ׳‘׳§׳ ׳™׳” ׳”׳¨׳׳©׳•׳ ׳”', 'kindertoys'); ?></span>
+    </div>
+
+    <div class="kt-container kt-header__main">
+        <button class="kt-icon-button kt-header__menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-navigation">
+            <span class="screen-reader-text"><?php esc_html_e('׳₪׳×׳— ׳×׳₪׳¨׳™׳˜', 'kindertoys'); ?></span>
+            <?php echo kindertoys_svg_icon('menu'); ?>
+        </button>
+
+        <a class="kt-logo" href="<?php echo esc_url(home_url('/')); ?>" aria-label="<?php echo esc_attr(get_bloginfo('name')); ?>">
+            <?php
+            if (has_custom_logo()) {
+                the_custom_logo();
+            } else {
+                echo '<img src="' . kindertoys_asset_uri('images/logo.png') . '" alt="' . esc_attr(get_bloginfo('name')) . '" width="190" height="58">';
+            }
+            ?>
+        </a>
+
+        <form role="search" method="get" class="kt-search" action="<?php echo esc_url(home_url('/')); ?>">
+            <label class="screen-reader-text" for="kt-search-field"><?php esc_html_e('׳—׳™׳₪׳•׳© ׳׳•׳¦׳¨׳™׳', 'kindertoys'); ?></label>
+            <span class="kt-search__icon"><?php echo kindertoys_svg_icon('search'); ?></span>
+            <input id="kt-search-field" type="search" name="s" value="<?php echo esc_attr(get_search_query()); ?>" placeholder="<?php esc_attr_e('׳—׳₪׳©׳• ׳׳©׳—׳§׳™׳, ׳׳•׳×׳’׳™׳ ׳׳• ׳§׳˜׳’׳•׳¨׳™׳•׳×...', 'kindertoys'); ?>">
+            <input type="hidden" name="post_type" value="product">
+            <button class="kt-button kt-search__submit" type="submit"><?php esc_html_e('׳—׳™׳₪׳•׳©', 'kindertoys'); ?></button>
+        </form>
+
+        <div class="kt-header__actions">
+            <a class="kt-icon-button" href="<?php echo esc_url(function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : wp_login_url()); ?>" aria-label="<?php esc_attr_e('׳”׳×׳—׳‘׳¨׳•׳×', 'kindertoys'); ?>">
+                <?php echo kindertoys_svg_icon('user'); ?>
+            </a>
+            <a class="kt-icon-button" href="<?php echo esc_url(home_url('/wishlist/')); ?>" aria-label="<?php esc_attr_e('׳׳•׳¢׳“׳₪׳™׳', 'kindertoys'); ?>">
+                <?php echo kindertoys_svg_icon('heart'); ?>
+            </a>
+            <a class="kt-cart-link" href="<?php echo esc_url(function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/')); ?>" aria-label="<?php esc_attr_e('׳¡׳ ׳§׳ ׳™׳•׳×', 'kindertoys'); ?>">
+                <span class="kt-cart-link__text">
+                    <span><?php esc_html_e('׳¡׳ ׳”׳§׳ ׳™׳•׳×', 'kindertoys'); ?></span>
+                    <strong data-cart-total><?php echo kindertoys_cart_total(); ?></strong>
+                </span>
+                <span class="kt-cart-link__icon">
+                    <?php echo kindertoys_svg_icon('cart'); ?>
+                    <span class="kt-cart-count" data-cart-count><?php echo esc_html((string) kindertoys_cart_count()); ?></span>
+                </span>
+            </a>
+        </div>
+    </div>
+
+    <nav id="site-navigation" class="kt-nav" data-site-nav aria-label="<?php esc_attr_e('׳×׳₪׳¨׳™׳˜ ׳¨׳׳©׳™', 'kindertoys'); ?>">
+        <div class="kt-container">
+            <?php
+            wp_nav_menu([
+                'theme_location' => 'primary',
+                'container'      => false,
+                'menu_class'     => 'kt-nav__list',
+                'fallback_cb'    => 'kindertoys_default_menu',
+                'depth'          => 2,
+            ]);
+            ?>
+        </div>
+    </nav>
+</header>

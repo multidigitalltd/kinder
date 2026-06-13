@@ -1,0 +1,14 @@
+.DS_Store
+Thumbs.db
+
+node_modules/
+vendor/
+
+*.log
+*.zip
+
+.env
+.env.*
+
+wp-content/uploads/
+wp-content/cache/
