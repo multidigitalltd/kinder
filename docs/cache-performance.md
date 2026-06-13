@@ -38,3 +38,14 @@ Recommended cached pages:
 - Keep cart fragments only where cart UI needs live updates.
 - Prefer object cache + page cache on production.
 - Avoid query-heavy widgets in the global header.
+
+## Cart And Checkout
+
+Cart, checkout, and account screens are styled mostly through CSS instead of template overrides. This keeps compatibility with WooCommerce updates, payment gateways, shipping methods, and legal checkout fields.
+
+Do not page-cache:
+
+- Cart.
+- Checkout.
+- My account.
+- Order pay / order received endpoints.
