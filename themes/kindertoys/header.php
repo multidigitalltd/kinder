@@ -15,17 +15,17 @@ declare(strict_types=1);
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<a class="skip-link" href="#primary"><?php esc_html_e('Skip to content', 'kindertoys'); ?></a>
+<a class="skip-link" href="#primary"><?php esc_html_e('דלג לתוכן', 'kindertoys'); ?></a>
 
 <header class="kt-header" data-site-header>
     <div class="kt-shipping-bar">
         <span class="kt-icon"><?php echo kindertoys_svg_icon('truck'); ?></span>
-        <span><?php esc_html_e('׳׳©׳׳•׳— ׳׳”׳™׳¨ ׳—׳™׳ ׳ ׳׳¢׳ 299 ג‚× | ׳׳•׳¢׳“׳•׳ ׳”׳׳§׳•׳—׳•׳× - 10% ׳”׳ ׳—׳” ׳‘׳§׳ ׳™׳” ׳”׳¨׳׳©׳•׳ ׳”', 'kindertoys'); ?></span>
+        <span><?php esc_html_e('משלוח מהיר חינם מעל 299 ₪ | מועדון הלקוחות - 10% הנחה בקניה הראשונה', 'kindertoys'); ?></span>
     </div>
 
     <div class="kt-container kt-header__main">
         <button class="kt-icon-button kt-header__menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-navigation">
-            <span class="screen-reader-text"><?php esc_html_e('׳₪׳×׳— ׳×׳₪׳¨׳™׳˜', 'kindertoys'); ?></span>
+            <span class="screen-reader-text"><?php esc_html_e('פתח תפריט', 'kindertoys'); ?></span>
             <?php echo kindertoys_svg_icon('menu'); ?>
         </button>
 
@@ -40,23 +40,24 @@ declare(strict_types=1);
         </a>
 
         <form role="search" method="get" class="kt-search" action="<?php echo esc_url(home_url('/')); ?>">
-            <label class="screen-reader-text" for="kt-search-field"><?php esc_html_e('׳—׳™׳₪׳•׳© ׳׳•׳¦׳¨׳™׳', 'kindertoys'); ?></label>
+            <label class="screen-reader-text" for="kt-search-field"><?php esc_html_e('חיפוש מוצרים', 'kindertoys'); ?></label>
             <span class="kt-search__icon"><?php echo kindertoys_svg_icon('search'); ?></span>
-            <input id="kt-search-field" type="search" name="s" value="<?php echo esc_attr(get_search_query()); ?>" placeholder="<?php esc_attr_e('׳—׳₪׳©׳• ׳׳©׳—׳§׳™׳, ׳׳•׳×׳’׳™׳ ׳׳• ׳§׳˜׳’׳•׳¨׳™׳•׳×...', 'kindertoys'); ?>">
+            <input id="kt-search-field" type="search" name="s" value="<?php echo esc_attr(get_search_query()); ?>" placeholder="<?php esc_attr_e('חפשו משחקים, מותגים או קטגוריות...', 'kindertoys'); ?>">
             <input type="hidden" name="post_type" value="product">
-            <button class="kt-button kt-search__submit" type="submit"><?php esc_html_e('׳—׳™׳₪׳•׳©', 'kindertoys'); ?></button>
+            <button class="kt-button kt-search__submit" type="submit"><?php esc_html_e('חיפוש', 'kindertoys'); ?></button>
         </form>
 
         <div class="kt-header__actions">
-            <a class="kt-icon-button" href="<?php echo esc_url(function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : wp_login_url()); ?>" aria-label="<?php esc_attr_e('׳”׳×׳—׳‘׳¨׳•׳×', 'kindertoys'); ?>">
+            <a class="kt-phone-link" href="tel:035293383"><?php echo kindertoys_svg_icon('phone'); ?><span>03-5293383</span></a>
+            <a class="kt-icon-button" href="<?php echo esc_url(function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : wp_login_url()); ?>" aria-label="<?php esc_attr_e('התחברות', 'kindertoys'); ?>">
                 <?php echo kindertoys_svg_icon('user'); ?>
             </a>
-            <a class="kt-icon-button" href="<?php echo esc_url(home_url('/wishlist/')); ?>" aria-label="<?php esc_attr_e('׳׳•׳¢׳“׳₪׳™׳', 'kindertoys'); ?>">
+            <a class="kt-icon-button" href="<?php echo esc_url(home_url('/wishlist/')); ?>" aria-label="<?php esc_attr_e('מועדפים', 'kindertoys'); ?>">
                 <?php echo kindertoys_svg_icon('heart'); ?>
             </a>
-            <a class="kt-cart-link" href="<?php echo esc_url(function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/')); ?>" aria-label="<?php esc_attr_e('׳¡׳ ׳§׳ ׳™׳•׳×', 'kindertoys'); ?>">
+            <a class="kt-cart-link" href="<?php echo esc_url(function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/')); ?>" aria-label="<?php esc_attr_e('סל קניות', 'kindertoys'); ?>">
                 <span class="kt-cart-link__text">
-                    <span><?php esc_html_e('׳¡׳ ׳”׳§׳ ׳™׳•׳×', 'kindertoys'); ?></span>
+                    <span><?php esc_html_e('סל הקניות', 'kindertoys'); ?></span>
                     <strong data-cart-total><?php echo kindertoys_cart_total(); ?></strong>
                 </span>
                 <span class="kt-cart-link__icon">
@@ -67,17 +68,22 @@ declare(strict_types=1);
         </div>
     </div>
 
-    <nav id="site-navigation" class="kt-nav" data-site-nav aria-label="<?php esc_attr_e('׳×׳₪׳¨׳™׳˜ ׳¨׳׳©׳™', 'kindertoys'); ?>">
-        <div class="kt-container">
+    <nav id="site-navigation" class="kt-nav" data-site-nav aria-label="<?php esc_attr_e('תפריט ראשי', 'kindertoys'); ?>">
+        <div class="kt-container kt-nav__inner">
+            <div class="kt-nav__mobile-head">
+                <strong><?php esc_html_e('תפריט', 'kindertoys'); ?></strong>
+                <button class="kt-icon-button" type="button" data-menu-close aria-label="<?php esc_attr_e('סגור תפריט', 'kindertoys'); ?>"><?php echo kindertoys_svg_icon('close'); ?></button>
+            </div>
             <?php
             wp_nav_menu([
                 'theme_location' => 'primary',
                 'container'      => false,
                 'menu_class'     => 'kt-nav__list',
                 'fallback_cb'    => 'kindertoys_default_menu',
-                'depth'          => 2,
+                'depth'          => 3,
             ]);
             ?>
         </div>
     </nav>
+    <div class="kt-nav-backdrop" data-menu-close></div>
 </header>

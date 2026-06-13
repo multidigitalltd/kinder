@@ -7,6 +7,7 @@
 
 declare(strict_types=1);
 ?>
+<?php kindertoys_floating_actions(); ?>
 <footer class="kt-footer">
     <div class="kt-container kt-footer__grid">
         <section>
