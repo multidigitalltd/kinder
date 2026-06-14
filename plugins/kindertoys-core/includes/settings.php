@@ -28,7 +28,8 @@ function kindertoys_core_default_settings(): array
         'whatsapp' => '97235293383',
         'search_placeholder' => 'חפשו משחקים, מותגים או קטגוריות...',
         'hero_eyebrow' => 'חדש בקינדר טויס - קולקציית 2026',
-        'hero_title' => 'עולם של קסם, משחק ויצירה',
+        'hero_title_prefix' => 'עולם של',
+        'hero_title' => 'קסם, משחק ויצירה',
         'hero_title_accent' => 'בלחיצה אחת',
         'hero_text' => 'אלפי צעצועים, משחקים, חומרי יצירה וציוד לבית הספר ולגן - משלוח מהיר ושירות אישי מהלב.',
         'hero_primary_label' => 'לכל המבצעים החמים',
@@ -59,7 +60,13 @@ function kindertoys_core_get_settings(): array
 {
     $settings = get_option(KINDERTOYS_CORE_SETTINGS_OPTION, []);
 
-    return wp_parse_args(is_array($settings) ? $settings : [], kindertoys_core_default_settings());
+    $settings = wp_parse_args(is_array($settings) ? $settings : [], kindertoys_core_default_settings());
+
+    if (str_starts_with((string) $settings['hero_title'], 'עולם של ')) {
+        $settings['hero_title'] = trim((string) preg_replace('/^עולם של\s+/u', '', (string) $settings['hero_title']));
+    }
+
+    return $settings;
 }
 
 function kindertoys_core_get_setting(string $key, mixed $fallback = ''): mixed
@@ -180,7 +187,8 @@ function kindertoys_core_render_settings_page(): void
             <h2><?php esc_html_e('Home hero', 'kindertoys-core'); ?></h2>
             <table class="form-table" role="presentation">
                 <?php kindertoys_core_text_field($settings, 'hero_eyebrow', __('Hero eyebrow', 'kindertoys-core')); ?>
-                <?php kindertoys_core_text_field($settings, 'hero_title', __('Hero title', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'hero_title_prefix', __('Hero title prefix', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'hero_title', __('Hero highlighted title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'hero_title_accent', __('Hero title accent', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'hero_text', __('Hero text', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'hero_primary_label', __('Primary button label', 'kindertoys-core')); ?>

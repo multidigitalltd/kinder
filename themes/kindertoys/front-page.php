@@ -19,7 +19,11 @@ $promo_images = [
         <div class="kt-container kt-hero__grid">
             <div class="kt-hero__copy">
                 <p class="kt-hero__pill"><span></span><?php echo esc_html((string) kindertoys_setting('hero_eyebrow', 'חדש בקינדר טויס - קולקציית 2026')); ?></p>
-                <h1><?php echo esc_html((string) kindertoys_setting('hero_title', 'עולם של קסם, משחק ויצירה')); ?><br><span><?php echo esc_html((string) kindertoys_setting('hero_title_accent', 'בלחיצה אחת')); ?></span></h1>
+                <h1>
+                    <?php echo esc_html((string) kindertoys_setting('hero_title_prefix', 'עולם של')); ?>
+                    <span class="kt-hero__highlight"><?php echo esc_html((string) kindertoys_setting('hero_title', 'קסם, משחק ויצירה')); ?></span>
+                    <br><span class="kt-hero__accent"><?php echo esc_html((string) kindertoys_setting('hero_title_accent', 'בלחיצה אחת')); ?></span>
+                </h1>
                 <p><?php echo esc_html((string) kindertoys_setting('hero_text', 'אלפי צעצועים, משחקים, חומרי יצירה וציוד לבית הספר ולגן - משלוח מהיר ושירות אישי מהלב.')); ?></p>
                 <div class="kt-hero__actions">
                     <a class="kt-button" href="<?php echo kindertoys_setting_url('hero_primary_url', '/product-category/sale/'); ?>"><?php echo esc_html((string) kindertoys_setting('hero_primary_label', 'לכל המבצעים החמים')); ?></a>
