@@ -13,6 +13,8 @@ $promo_images = [
     2 => kindertoys_asset_uri('images/promo-gameboy.jpg'),
     3 => kindertoys_asset_uri('images/promo-blocks.jpg'),
 ];
+$hero_image = (string) kindertoys_setting('hero_image_url', '');
+$hero_image = '' !== $hero_image ? esc_url($hero_image) : kindertoys_asset_uri('images/hero-kindy-scene.png');
 ?>
 <main id="primary" class="site-main kt-home">
     <section class="kt-hero">
@@ -36,7 +38,7 @@ $promo_images = [
                 </div>
             </div>
             <div class="kt-hero__media" aria-hidden="true">
-                <img src="<?php echo kindertoys_asset_uri('images/hero-kindy-scene.png'); ?>" alt="" width="1024" height="1024" loading="eager">
+                <img src="<?php echo esc_url($hero_image); ?>" alt="" width="1024" height="1024" loading="eager">
                 <div class="kt-hero__float kt-hero__float--top"><?php echo kindertoys_svg_icon('spark'); ?><strong><?php esc_html_e('+120 מוצרים חדשים', 'kindertoys'); ?></strong></div>
                 <div class="kt-hero__float kt-hero__float--bottom"><?php echo kindertoys_svg_icon('truck'); ?><strong><?php esc_html_e('חינם מעל 299 ₪', 'kindertoys'); ?></strong></div>
             </div>
@@ -53,8 +55,8 @@ $promo_images = [
     <?php if (class_exists('WooCommerce')) : ?>
         <section class="kt-container kt-section">
             <div class="kt-section__head">
-                <p class="kt-eyebrow"><?php esc_html_e('קטגוריות מובילות', 'kindertoys'); ?></p>
-                <h2><?php esc_html_e('בחרו את העולם המתאים לכם', 'kindertoys'); ?></h2>
+                <p class="kt-eyebrow"><?php echo esc_html((string) kindertoys_setting('categories_eyebrow', 'קטגוריות מובילות')); ?></p>
+                <h2><?php echo esc_html((string) kindertoys_setting('categories_title', 'בחרו את העולם המתאים לכם')); ?></h2>
             </div>
             <?php echo do_shortcode('[kindertoys_categories limit="6"]'); ?>
         </section>
@@ -83,8 +85,8 @@ $promo_images = [
 
         <section class="kt-container kt-section">
             <div class="kt-section__head">
-                <p class="kt-eyebrow"><?php esc_html_e('מוצרים חמים', 'kindertoys'); ?></p>
-                <h2><?php esc_html_e('הנבחרים של קינדי', 'kindertoys'); ?></h2>
+                <p class="kt-eyebrow"><?php echo esc_html((string) kindertoys_setting('products_eyebrow', 'מוצרים חמים')); ?></p>
+                <h2><?php echo esc_html((string) kindertoys_setting('products_title', 'הנבחרים של קינדי')); ?></h2>
             </div>
             <?php echo do_shortcode('[products limit="10" columns="5" orderby="popularity"]'); ?>
         </section>
@@ -92,8 +94,8 @@ $promo_images = [
 
     <section class="kt-container kt-section">
         <div class="kt-section__head">
-            <p class="kt-eyebrow"><?php esc_html_e('בוחרים לפי גיל', 'kindertoys'); ?></p>
-            <h2><?php esc_html_e('למצוא את המתנה המושלמת', 'kindertoys'); ?></h2>
+            <p class="kt-eyebrow"><?php echo esc_html((string) kindertoys_setting('age_eyebrow', 'בוחרים לפי גיל')); ?></p>
+            <h2><?php echo esc_html((string) kindertoys_setting('age_title', 'למצוא את המתנה המושלמת')); ?></h2>
         </div>
         <div class="kt-age-grid">
             <?php foreach ([['0-2', 'תינוקות'], ['3-5', 'גיל הגן'], ['6-8', 'בית ספר יסודי'], ['9-12', 'חטיבת ביניים'], ['13+', 'נוער ונערות']] as $age) : ?>
@@ -108,8 +110,8 @@ $promo_images = [
 
     <section class="kt-container kt-section">
         <div class="kt-section__head">
-            <p class="kt-eyebrow"><?php esc_html_e('מותגים אהובים', 'kindertoys'); ?></p>
-            <h2><?php esc_html_e('רק המקוריים והאיכותיים', 'kindertoys'); ?></h2>
+            <p class="kt-eyebrow"><?php echo esc_html((string) kindertoys_setting('brands_eyebrow', 'מותגים אהובים')); ?></p>
+            <h2><?php echo esc_html((string) kindertoys_setting('brands_title', 'רק המקוריים והאיכותיים')); ?></h2>
         </div>
         <div class="kt-brand-grid">
             <?php foreach (['LEGO', 'PLAYMOBIL', 'מודן', 'NICI', 'פלפוט', 'SMASH', 'Melissa & Doug', 'Janod', 'Hape', 'Ravensburger', 'Bruder', 'Schleich'] as $brand) : ?>

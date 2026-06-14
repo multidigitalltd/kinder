@@ -19,9 +19,14 @@ declare(strict_types=1);
 
 <header class="kt-header" data-site-header>
     <div class="kt-top-promos" aria-label="<?php esc_attr_e('עדכונים ומבצעים', 'kindertoys'); ?>">
-        <span><?php echo kindertoys_svg_icon('gift'); ?><?php esc_html_e('מועדון קינדי - 5% חזרה על כל קניה', 'kindertoys'); ?></span>
-        <span><?php echo kindertoys_svg_icon('spark'); ?><?php esc_html_e('קולקציית חזרה לבית הספר 2026 נחתה', 'kindertoys'); ?></span>
-        <span><?php echo kindertoys_svg_icon('shield'); ?><?php esc_html_e('תשלום מאובטח PCI + SSL', 'kindertoys'); ?></span>
+        <div class="kt-top-promos__track">
+            <?php for ($loop = 0; $loop < 2; $loop++) : ?>
+                <?php for ($i = 1; $i <= 5; $i++) : ?>
+                    <?php $icon = [1 => 'truck', 2 => 'gift', 3 => 'spark', 4 => 'shield', 5 => 'phone'][$i]; ?>
+                    <span><?php echo kindertoys_svg_icon($icon); ?><?php echo esc_html((string) kindertoys_setting("top_promo_{$i}", '')); ?></span>
+                <?php endfor; ?>
+            <?php endfor; ?>
+        </div>
     </div>
     <div class="kt-shipping-bar">
         <span class="kt-icon"><?php echo kindertoys_svg_icon('truck'); ?></span>

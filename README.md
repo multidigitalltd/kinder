@@ -55,6 +55,15 @@ You can manage:
 - Search placeholder.
 - Home hero text and buttons.
 - Promo banner text, links and image URLs.
+- Section headings for categories, products, age and brands.
+- Hero image URL.
+- Top promo marquee items.
+
+## Menu Control
+
+Use `Appearance > Menus` and assign the menu to `Primary menu`.
+
+The hard-coded fallback menu is only a safety net for a fresh install. For pixel-accurate production navigation, every label, order, URL and hierarchy should come from the WordPress menu manager.
 
 ### Fonts
 

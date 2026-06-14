@@ -24,6 +24,11 @@ function kindertoys_core_default_settings(): array
         'display_font_bold_url' => '',
         'font_family' => '"Ploni", "Arial", system-ui, sans-serif',
         'top_bar_text' => 'משלוח מהיר חינם מעל 299 ₪ | מועדון הלקוחות - 10% הנחה בקניה הראשונה',
+        'top_promo_1' => 'משלוח חינם בהזמנה מעל 299 ₪',
+        'top_promo_2' => 'מועדון קינדי - 5% חזרה על כל קניה',
+        'top_promo_3' => 'קולקציית חזרה לבית הספר 2026 נחתה',
+        'top_promo_4' => 'תשלום מאובטח SSL + PCI',
+        'top_promo_5' => 'שירות אישי 03-5293383',
         'phone' => '03-5293383',
         'whatsapp' => '97235293383',
         'search_placeholder' => 'חפשו משחקים, מותגים או קטגוריות...',
@@ -36,6 +41,15 @@ function kindertoys_core_default_settings(): array
         'hero_primary_url' => '/product-category/sale/',
         'hero_secondary_label' => 'לכל המוצרים',
         'hero_secondary_url' => '/shop/',
+        'hero_image_url' => '',
+        'categories_eyebrow' => 'קטגוריות מובילות',
+        'categories_title' => 'בחרו את העולם המתאים לכם',
+        'products_eyebrow' => 'מוצרים חמים',
+        'products_title' => 'הנבחרים של קינדי',
+        'age_eyebrow' => 'בוחרים לפי גיל',
+        'age_title' => 'למצוא את המתנה המושלמת',
+        'brands_eyebrow' => 'מותגים אהובים',
+        'brands_title' => 'רק המקוריים והאיכותיים',
         'promo_section_eyebrow' => 'מבצעים חמים',
         'promo_section_title' => 'המבצעים של קינדי',
         'promo_1_badge' => 'מוגבל בזמן',
@@ -180,6 +194,9 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'display_font_bold_url', __('Display bold font file URL', 'kindertoys-core'), 'Used for heavy headings if provided.'); ?>
                 <?php kindertoys_core_text_field($settings, 'font_family', __('Fallback font stack', 'kindertoys-core'), 'Example: "Ploni", "Arial", system-ui, sans-serif'); ?>
                 <?php kindertoys_core_text_field($settings, 'top_bar_text', __('Top bar text', 'kindertoys-core')); ?>
+                <?php for ($i = 1; $i <= 5; $i++) : ?>
+                    <?php kindertoys_core_text_field($settings, "top_promo_{$i}", sprintf(__('Top promo item %d', 'kindertoys-core'), $i)); ?>
+                <?php endfor; ?>
                 <?php kindertoys_core_text_field($settings, 'phone', __('Phone', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'whatsapp', __('WhatsApp number', 'kindertoys-core'), 'International format, digits only. Example: 97235293383'); ?>
                 <?php kindertoys_core_text_field($settings, 'search_placeholder', __('Search placeholder', 'kindertoys-core')); ?>
@@ -196,6 +213,15 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'hero_primary_url', __('Primary button URL', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'hero_secondary_label', __('Secondary button label', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'hero_secondary_url', __('Secondary button URL', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'hero_image_url', __('Hero image URL', 'kindertoys-core'), 'Leave empty to use the bundled Lovable image.'); ?>
+                <?php kindertoys_core_text_field($settings, 'categories_eyebrow', __('Categories eyebrow', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'categories_title', __('Categories title', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'products_eyebrow', __('Products eyebrow', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'products_title', __('Products title', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'age_eyebrow', __('Age section eyebrow', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'age_title', __('Age section title', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'brands_eyebrow', __('Brands eyebrow', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'brands_title', __('Brands title', 'kindertoys-core')); ?>
             </table>
 
             <h2><?php esc_html_e('Promo banners', 'kindertoys-core'); ?></h2>

@@ -8,13 +8,20 @@
 }
 
 .kt-top-promos {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
   min-height: 36px;
-  background: linear-gradient(90deg, var(--kt-red), #8f2d73 48%, var(--kt-navy));
+  background: linear-gradient(270deg, var(--kt-red), var(--kt-red-dark) 48%, var(--kt-navy));
   color: var(--kt-white);
   font-size: .82rem;
   font-weight: 900;
+}
+
+.kt-top-promos__track {
+  display: flex;
+  width: max-content;
+  min-width: 200%;
+  animation: kt-marquee 38s linear infinite;
+  white-space: nowrap;
 }
 
 .kt-top-promos span {
@@ -22,14 +29,25 @@
   gap: .45rem;
   align-items: center;
   justify-content: center;
+  min-height: 36px;
   padding-inline: .75rem;
-  border-inline-start: 1px solid rgba(255, 255, 255, .18);
+  margin-inline: 1rem;
   white-space: nowrap;
 }
 
 .kt-top-promos svg {
   width: 1rem;
   height: 1rem;
+}
+
+@keyframes kt-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(50%);
+  }
 }
 
 .kt-shipping-bar {
@@ -1074,11 +1092,11 @@
   }
 
   .kt-top-promos {
-    grid-template-columns: 1fr;
+    min-height: 34px;
   }
 
-  .kt-top-promos span:nth-child(n+2) {
-    display: none;
+  .kt-top-promos span {
+    margin-inline: .7rem;
   }
 
   .kt-header__menu-toggle {
