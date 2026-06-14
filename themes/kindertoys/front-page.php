@@ -32,7 +32,7 @@ $promo_images = [
                 </div>
             </div>
             <div class="kt-hero__media" aria-hidden="true">
-                <img src="<?php echo kindertoys_asset_uri('images/mascot-wave.png'); ?>" alt="" width="680" height="680" loading="eager">
+                <img src="<?php echo kindertoys_asset_uri('images/hero-kindy-scene.png'); ?>" alt="" width="1024" height="1024" loading="eager">
                 <div class="kt-hero__float kt-hero__float--top"><?php echo kindertoys_svg_icon('spark'); ?><strong><?php esc_html_e('+120 מוצרים חדשים', 'kindertoys'); ?></strong></div>
                 <div class="kt-hero__float kt-hero__float--bottom"><?php echo kindertoys_svg_icon('truck'); ?><strong><?php esc_html_e('חינם מעל 299 ₪', 'kindertoys'); ?></strong></div>
             </div>
