@@ -31,6 +31,7 @@ Implemented:
 
 - Lean WooCommerce theme foundation.
 - KinderToys Core plugin for product fields and reusable category sections.
+- KinderToys admin settings screen for font, phone, WhatsApp, top bar text, hero text and promo banners.
 - Header with search, cart count, account/wishlist links, fallback mega menu and mobile drawer.
 - Lovable-inspired home page sections rendered natively in PHP.
 - WooCommerce product cards, product page facts/highlights/tabs, archive polish.
@@ -38,3 +39,18 @@ Implemented:
 - Cache and staging QA documentation.
 
 Still requires staging verification with real WooCommerce data, payment gateways and shipping methods.
+
+## Store Settings
+
+After activating `kindertoys-core`, go to:
+
+`WordPress Admin > KinderToys`
+
+You can manage:
+
+- Font family.
+- Top bar text.
+- Phone and WhatsApp numbers.
+- Search placeholder.
+- Home hero text and buttons.
+- Promo banner text, links and image URLs.

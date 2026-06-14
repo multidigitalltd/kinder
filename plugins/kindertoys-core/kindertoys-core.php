@@ -18,5 +18,6 @@ if (! defined('ABSPATH')) {
 define('KINDERTOYS_CORE_VERSION', '0.1.0');
 define('KINDERTOYS_CORE_DIR', plugin_dir_path(__FILE__));
 
+require_once KINDERTOYS_CORE_DIR . 'includes/settings.php';
 require_once KINDERTOYS_CORE_DIR . 'includes/product-meta.php';
 require_once KINDERTOYS_CORE_DIR . 'includes/shortcodes.php';

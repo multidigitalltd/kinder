@@ -16,6 +16,39 @@ function kindertoys_asset_uri(string $path): string
     return esc_url(KINDERTOYS_THEME_URI . '/assets/' . ltrim($path, '/'));
 }
 
+function kindertoys_setting(string $key, mixed $fallback = ''): mixed
+{
+    if (function_exists('kindertoys_core_get_setting')) {
+        return kindertoys_core_get_setting($key, $fallback);
+    }
+
+    return $fallback;
+}
+
+function kindertoys_setting_url(string $key, string $fallback = '#'): string
+{
+    $value = (string) kindertoys_setting($key, $fallback);
+
+    if (function_exists('kindertoys_core_url')) {
+        return esc_url(kindertoys_core_url($value));
+    }
+
+    if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+        return esc_url($value);
+    }
+
+    return esc_url(home_url('/' . ltrim($value, '/')));
+}
+
+function kindertoys_phone_href(): string
+{
+    if (function_exists('kindertoys_core_tel_href')) {
+        return esc_url(kindertoys_core_tel_href());
+    }
+
+    return 'tel:035293383';
+}
+
 function kindertoys_cart_count(): int
 {
     if (! function_exists('WC') || ! WC()->cart) {
@@ -124,7 +157,8 @@ function kindertoys_floating_actions(): void
 {
     ?>
     <div class="kt-floating-actions" aria-label="<?php esc_attr_e('פעולות מהירות', 'kindertoys'); ?>">
-        <a class="kt-float kt-float--wa" href="https://wa.me/97235293383" target="_blank" rel="noopener" aria-label="<?php esc_attr_e('צאט בוואטסאפ', 'kindertoys'); ?>">
+        <?php $whatsapp = preg_replace('/[^\d]/', '', (string) kindertoys_setting('whatsapp', '97235293383')); ?>
+        <a class="kt-float kt-float--wa" href="<?php echo esc_url('https://wa.me/' . $whatsapp); ?>" target="_blank" rel="noopener" aria-label="<?php esc_attr_e('צאט בוואטסאפ', 'kindertoys'); ?>">
             <?php echo kindertoys_svg_icon('wa'); ?>
         </a>
         <button class="kt-float kt-float--access" type="button" data-a11y-toggle aria-pressed="false" aria-label="<?php esc_attr_e('הגדלת טקסט וניגודיות', 'kindertoys'); ?>">

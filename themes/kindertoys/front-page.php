@@ -8,17 +8,22 @@
 declare(strict_types=1);
 
 get_header();
+$promo_images = [
+    1 => kindertoys_asset_uri('images/promo-back-to-school.jpg'),
+    2 => kindertoys_asset_uri('images/promo-gameboy.jpg'),
+    3 => kindertoys_asset_uri('images/promo-blocks.jpg'),
+];
 ?>
 <main id="primary" class="site-main kt-home">
     <section class="kt-hero">
         <div class="kt-container kt-hero__grid">
             <div class="kt-hero__copy">
-                <p class="kt-hero__pill"><span></span><?php esc_html_e('חדש בקינדר טויס - קולקציית 2026', 'kindertoys'); ?></p>
-                <h1><?php esc_html_e('עולם של קסם, משחק ויצירה', 'kindertoys'); ?><br><span><?php esc_html_e('בלחיצה אחת', 'kindertoys'); ?></span></h1>
-                <p><?php esc_html_e('אלפי צעצועים, משחקים, חומרי יצירה וציוד לבית הספר ולגן - משלוח מהיר ושירות אישי מהלב.', 'kindertoys'); ?></p>
+                <p class="kt-hero__pill"><span></span><?php echo esc_html((string) kindertoys_setting('hero_eyebrow', 'חדש בקינדר טויס - קולקציית 2026')); ?></p>
+                <h1><?php echo esc_html((string) kindertoys_setting('hero_title', 'עולם של קסם, משחק ויצירה')); ?><br><span><?php echo esc_html((string) kindertoys_setting('hero_title_accent', 'בלחיצה אחת')); ?></span></h1>
+                <p><?php echo esc_html((string) kindertoys_setting('hero_text', 'אלפי צעצועים, משחקים, חומרי יצירה וציוד לבית הספר ולגן - משלוח מהיר ושירות אישי מהלב.')); ?></p>
                 <div class="kt-hero__actions">
-                    <a class="kt-button" href="<?php echo esc_url(home_url('/product-category/sale/')); ?>"><?php esc_html_e('לכל המבצעים החמים', 'kindertoys'); ?></a>
-                    <a class="kt-button kt-button--light" href="<?php echo esc_url(home_url('/shop/')); ?>"><?php esc_html_e('לכל המוצרים', 'kindertoys'); ?></a>
+                    <a class="kt-button" href="<?php echo kindertoys_setting_url('hero_primary_url', '/product-category/sale/'); ?>"><?php echo esc_html((string) kindertoys_setting('hero_primary_label', 'לכל המבצעים החמים')); ?></a>
+                    <a class="kt-button kt-button--light" href="<?php echo kindertoys_setting_url('hero_secondary_url', '/shop/'); ?>"><?php echo esc_html((string) kindertoys_setting('hero_secondary_label', 'לכל המוצרים')); ?></a>
                 </div>
                 <div class="kt-hero__proof">
                     <span class="kt-rating"><?php echo str_repeat(kindertoys_svg_icon('star'), 5); ?><strong>4.9</strong></span>
@@ -52,28 +57,23 @@ get_header();
 
         <section class="kt-container kt-section">
             <div class="kt-section__head">
-                <p class="kt-eyebrow"><?php esc_html_e('מבצעים חמים', 'kindertoys'); ?></p>
-                <h2><?php esc_html_e('המבצעים של קינדי', 'kindertoys'); ?></h2>
+                <p class="kt-eyebrow"><?php echo esc_html((string) kindertoys_setting('promo_section_eyebrow', 'מבצעים חמים')); ?></p>
+                <h2><?php echo esc_html((string) kindertoys_setting('promo_section_title', 'המבצעים של קינדי')); ?></h2>
             </div>
             <div class="kt-promo-grid">
-                <a class="kt-promo kt-promo--big kt-promo--red" href="<?php echo esc_url(home_url('/product-category/back-to-school/')); ?>">
-                    <img src="<?php echo kindertoys_asset_uri('images/promo-back-to-school.jpg'); ?>" alt="" loading="lazy" width="720" height="480">
-                    <span><?php esc_html_e('מוגבל בזמן', 'kindertoys'); ?></span>
-                    <strong><?php esc_html_e('חזרה לבית הספר עד 40% הנחה', 'kindertoys'); ?></strong>
-                    <small><?php esc_html_e('ילקוטים, קלמרים, מחברות וכלי כתיבה במחירי השקה', 'kindertoys'); ?></small>
-                </a>
-                <a class="kt-promo kt-promo--navy" href="<?php echo esc_url(home_url('/shop/')); ?>">
-                    <img src="<?php echo kindertoys_asset_uri('images/promo-gameboy.jpg'); ?>" alt="" loading="lazy" width="420" height="280">
-                    <span><?php esc_html_e('חדש בקינדי', 'kindertoys'); ?></span>
-                    <strong><?php esc_html_e('משחקים אלקטרוניים', 'kindertoys'); ?></strong>
-                    <small><?php esc_html_e('דגמים נבחרים במלאי', 'kindertoys'); ?></small>
-                </a>
-                <a class="kt-promo kt-promo--blue" href="<?php echo esc_url(home_url('/product-category/building/')); ?>">
-                    <img src="<?php echo kindertoys_asset_uri('images/promo-blocks.jpg'); ?>" alt="" loading="lazy" width="420" height="280">
-                    <span><?php esc_html_e('מחיר מיוחד', 'kindertoys'); ?></span>
-                    <strong><?php esc_html_e('בנייה ולגו בכל הסדרות', 'kindertoys'); ?></strong>
-                    <small><?php esc_html_e('מתנות שילדים באמת אוהבים', 'kindertoys'); ?></small>
-                </a>
+                <?php for ($i = 1; $i <= 3; $i++) : ?>
+                    <?php
+                    $classes = ['kt-promo', 1 === $i ? 'kt-promo--big kt-promo--red' : (2 === $i ? 'kt-promo--navy' : 'kt-promo--blue')];
+                    $image = (string) kindertoys_setting("promo_{$i}_image", '');
+                    $image = '' !== $image ? esc_url($image) : $promo_images[$i];
+                    ?>
+                    <a class="<?php echo esc_attr(implode(' ', $classes)); ?>" href="<?php echo kindertoys_setting_url("promo_{$i}_url", 1 === $i ? '/product-category/back-to-school/' : (2 === $i ? '/shop/' : '/product-category/building/')); ?>">
+                        <img src="<?php echo esc_url($image); ?>" alt="" loading="lazy" width="<?php echo 1 === $i ? '720' : '420'; ?>" height="<?php echo 1 === $i ? '480' : '280'; ?>">
+                        <span><?php echo esc_html((string) kindertoys_setting("promo_{$i}_badge", '')); ?></span>
+                        <strong><?php echo esc_html((string) kindertoys_setting("promo_{$i}_title", '')); ?></strong>
+                        <small><?php echo esc_html((string) kindertoys_setting("promo_{$i}_text", '')); ?></small>
+                    </a>
+                <?php endfor; ?>
             </div>
         </section>
 

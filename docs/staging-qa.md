@@ -11,6 +11,7 @@ Run this on a staging copy of `kindertoys.co.il` with WooCommerce active and rea
    - Primary menu.
    - Footer menu.
 5. Set the custom logo if the default bundled logo should be replaced.
+6. Go to `Admin > KinderToys` and set phone, WhatsApp, top bar text, hero text, font and promo banners.
 
 ## Content
 

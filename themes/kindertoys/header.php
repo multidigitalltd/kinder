@@ -20,7 +20,7 @@ declare(strict_types=1);
 <header class="kt-header" data-site-header>
     <div class="kt-shipping-bar">
         <span class="kt-icon"><?php echo kindertoys_svg_icon('truck'); ?></span>
-        <span><?php esc_html_e('משלוח מהיר חינם מעל 299 ₪ | מועדון הלקוחות - 10% הנחה בקניה הראשונה', 'kindertoys'); ?></span>
+        <span><?php echo esc_html((string) kindertoys_setting('top_bar_text', 'משלוח מהיר חינם מעל 299 ₪ | מועדון הלקוחות - 10% הנחה בקניה הראשונה')); ?></span>
     </div>
 
     <div class="kt-container kt-header__main">
@@ -42,13 +42,13 @@ declare(strict_types=1);
         <form role="search" method="get" class="kt-search" action="<?php echo esc_url(home_url('/')); ?>">
             <label class="screen-reader-text" for="kt-search-field"><?php esc_html_e('חיפוש מוצרים', 'kindertoys'); ?></label>
             <span class="kt-search__icon"><?php echo kindertoys_svg_icon('search'); ?></span>
-            <input id="kt-search-field" type="search" name="s" value="<?php echo esc_attr(get_search_query()); ?>" placeholder="<?php esc_attr_e('חפשו משחקים, מותגים או קטגוריות...', 'kindertoys'); ?>">
+            <input id="kt-search-field" type="search" name="s" value="<?php echo esc_attr(get_search_query()); ?>" placeholder="<?php echo esc_attr((string) kindertoys_setting('search_placeholder', 'חפשו משחקים, מותגים או קטגוריות...')); ?>">
             <input type="hidden" name="post_type" value="product">
             <button class="kt-button kt-search__submit" type="submit"><?php esc_html_e('חיפוש', 'kindertoys'); ?></button>
         </form>
 
         <div class="kt-header__actions">
-            <a class="kt-phone-link" href="tel:035293383"><?php echo kindertoys_svg_icon('phone'); ?><span>03-5293383</span></a>
+            <a class="kt-phone-link" href="<?php echo kindertoys_phone_href(); ?>"><?php echo kindertoys_svg_icon('phone'); ?><span><?php echo esc_html((string) kindertoys_setting('phone', '03-5293383')); ?></span></a>
             <a class="kt-icon-button" href="<?php echo esc_url(function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : wp_login_url()); ?>" aria-label="<?php esc_attr_e('התחברות', 'kindertoys'); ?>">
                 <?php echo kindertoys_svg_icon('user'); ?>
             </a>
