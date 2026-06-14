@@ -50,17 +50,46 @@ function kindertoys_is_woocommerce_context(): bool
 
 function kindertoys_enqueue_inline_settings_css(): void
 {
-    $font = (string) kindertoys_setting('font_family', '"Ploni", "Arial", system-ui, sans-serif');
+    $fallback = (string) kindertoys_setting('font_family', '"Ploni", "Arial", system-ui, sans-serif');
+    $body_font = (string) kindertoys_setting('body_font_family', 'Ploni');
+    $display_font = (string) kindertoys_setting('display_font_family', 'PloniYad');
 
-    if ('' === trim($font)) {
-        return;
+    $body_font = kindertoys_css_font_name($body_font, 'Ploni');
+    $display_font = kindertoys_css_font_name($display_font, 'PloniYad');
+    $fallback = kindertoys_css_font_stack($fallback, '"Ploni", "Arial", system-ui, sans-serif');
+
+    $css = '';
+    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_regular_url', ''), 400);
+    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_bold_url', ''), 700);
+    $css .= kindertoys_font_face_css($display_font, (string) kindertoys_setting('display_font_regular_url', ''), 400);
+    $css .= kindertoys_font_face_css($display_font, (string) kindertoys_setting('display_font_bold_url', ''), 800);
+    $css .= ':root{--kt-font:"' . $body_font . '",' . $fallback . ';--kt-display-font:"' . $display_font . '","' . $body_font . '",' . $fallback . ';}';
+
+    wp_add_inline_style('kindertoys-base', $css);
+}
+
+function kindertoys_font_face_css(string $family, string $url, int $weight): string
+{
+    if ('' === trim($url)) {
+        return '';
     }
 
-    $font = preg_replace('/[^a-zA-Z0-9\s,"\-_(),]/', '', wp_strip_all_tags($font)) ?: '';
+    $url = esc_url_raw($url);
+    $format = str_ends_with(strtolower($url), '.woff2') ? 'woff2' : 'woff';
 
-    if ('' === trim($font)) {
-        return;
-    }
+    return '@font-face{font-family:"' . $family . '";src:url("' . esc_url($url) . '") format("' . $format . '");font-weight:' . $weight . ';font-style:normal;font-display:swap;}';
+}
 
-    wp_add_inline_style('kindertoys-base', ':root{--kt-font:' . $font . ';}');
+function kindertoys_css_font_name(string $value, string $fallback): string
+{
+    $value = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', wp_strip_all_tags($value)) ?: '';
+
+    return '' !== trim($value) ? trim($value) : $fallback;
+}
+
+function kindertoys_css_font_stack(string $value, string $fallback): string
+{
+    $value = preg_replace('/[^a-zA-Z0-9\s,"\-_(),]/', '', wp_strip_all_tags($value)) ?: '';
+
+    return '' !== trim($value) ? trim($value) : $fallback;
 }

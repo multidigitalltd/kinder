@@ -16,6 +16,12 @@ const KINDERTOYS_CORE_SETTINGS_OPTION = 'kindertoys_core_settings';
 function kindertoys_core_default_settings(): array
 {
     return [
+        'body_font_family' => 'Ploni',
+        'body_font_regular_url' => '',
+        'body_font_bold_url' => '',
+        'display_font_family' => 'PloniYad',
+        'display_font_regular_url' => '',
+        'display_font_bold_url' => '',
         'font_family' => '"Ploni", "Arial", system-ui, sans-serif',
         'top_bar_text' => 'משלוח מהיר חינם מעל 299 ₪ | מועדון הלקוחות - 10% הנחה בקניה הראשונה',
         'phone' => '03-5293383',
@@ -98,6 +104,17 @@ function kindertoys_core_register_settings_page(): void
     );
 }
 
+add_filter('upload_mimes', 'kindertoys_core_allow_font_uploads');
+function kindertoys_core_allow_font_uploads(array $mimes): array
+{
+    $mimes['woff'] = 'font/woff';
+    $mimes['woff2'] = 'font/woff2';
+    $mimes['ttf'] = 'font/ttf';
+    $mimes['otf'] = 'font/otf';
+
+    return $mimes;
+}
+
 add_action('admin_init', 'kindertoys_core_register_settings');
 function kindertoys_core_register_settings(): void
 {
@@ -121,7 +138,7 @@ function kindertoys_core_sanitize_settings(array $input): array
             continue;
         }
 
-        if ('font_family' === $key) {
+        if (in_array($key, ['font_family', 'body_font_family', 'display_font_family'], true)) {
             $output[$key] = sanitize_text_field((string) $value);
             continue;
         }
@@ -147,7 +164,13 @@ function kindertoys_core_render_settings_page(): void
 
             <h2><?php esc_html_e('Brand and header', 'kindertoys-core'); ?></h2>
             <table class="form-table" role="presentation">
-                <?php kindertoys_core_text_field($settings, 'font_family', __('Font family', 'kindertoys-core'), 'Example: "Ploni", "Arial", system-ui, sans-serif'); ?>
+                <?php kindertoys_core_text_field($settings, 'body_font_family', __('Body font name', 'kindertoys-core'), 'Example: Ploni'); ?>
+                <?php kindertoys_core_text_field($settings, 'body_font_regular_url', __('Body regular font file URL', 'kindertoys-core'), 'Upload a .woff2/.woff file to Media Library and paste its URL here.'); ?>
+                <?php kindertoys_core_text_field($settings, 'body_font_bold_url', __('Body bold font file URL', 'kindertoys-core'), 'Optional but recommended for bold text.'); ?>
+                <?php kindertoys_core_text_field($settings, 'display_font_family', __('Display/headings font name', 'kindertoys-core'), 'Example: PloniYad'); ?>
+                <?php kindertoys_core_text_field($settings, 'display_font_regular_url', __('Display regular font file URL', 'kindertoys-core'), 'Used for headings if provided.'); ?>
+                <?php kindertoys_core_text_field($settings, 'display_font_bold_url', __('Display bold font file URL', 'kindertoys-core'), 'Used for heavy headings if provided.'); ?>
+                <?php kindertoys_core_text_field($settings, 'font_family', __('Fallback font stack', 'kindertoys-core'), 'Example: "Ploni", "Arial", system-ui, sans-serif'); ?>
                 <?php kindertoys_core_text_field($settings, 'top_bar_text', __('Top bar text', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'phone', __('Phone', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'whatsapp', __('WhatsApp number', 'kindertoys-core'), 'International format, digits only. Example: 97235293383'); ?>

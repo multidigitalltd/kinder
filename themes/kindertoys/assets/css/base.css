@@ -19,6 +19,7 @@
   --kt-focus: 0 0 0 3px rgba(217, 39, 50, .22);
   --kt-container: 1440px;
   --kt-font: "Ploni", "Arial", system-ui, sans-serif;
+  --kt-display-font: "PloniYad", "Ploni", "Arial", system-ui, sans-serif;
 }
 
 *,
@@ -41,6 +42,16 @@ body {
   line-height: 1.55;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.kt-logo,
+.kt-button,
+.woocommerce-products-header__title,
+.product_title {
+  font-family: var(--kt-display-font);
 }
 
 img,

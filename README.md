@@ -49,8 +49,22 @@ After activating `kindertoys-core`, go to:
 You can manage:
 
 - Font family.
+- Body/display font file URLs from the Media Library.
 - Top bar text.
 - Phone and WhatsApp numbers.
 - Search placeholder.
 - Home hero text and buttons.
 - Promo banner text, links and image URLs.
+
+### Fonts
+
+Upload font files in `Media > Add New`, preferably `.woff2`.
+
+Then copy each uploaded file URL into:
+
+- `Body regular font file URL`
+- `Body bold font file URL`
+- `Display regular font file URL`
+- `Display bold font file URL`
+
+Use the font name fields to match the uploaded font family name, for example `Ploni` and `PloniYad`.
