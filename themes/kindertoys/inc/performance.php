@@ -23,23 +23,3 @@ function kindertoys_trim_core_assets(): void
         wp_dequeue_style('global-styles');
     }
 }
-
-add_filter('script_loader_tag', 'kindertoys_defer_theme_scripts', 10, 3);
-function kindertoys_defer_theme_scripts(string $tag, string $handle, string $src): string
-{
-    if ('kindertoys-theme' !== $handle || false !== strpos($tag, ' defer')) {
-        return $tag;
-    }
-
-    return str_replace(' src=', ' defer src=', $tag);
-}
-
-add_filter('wp_resource_hints', 'kindertoys_resource_hints', 10, 2);
-function kindertoys_resource_hints(array $urls, string $relation_type): array
-{
-    if ('preconnect' === $relation_type) {
-        $urls[] = home_url();
-    }
-
-    return array_values(array_unique($urls));
-}

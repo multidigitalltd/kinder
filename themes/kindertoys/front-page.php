@@ -30,7 +30,7 @@ $promo_images = [
                     <a class="kt-button kt-button--light" href="<?php echo kindertoys_setting_url('hero_secondary_url', '/shop/'); ?>"><?php echo esc_html((string) kindertoys_setting('hero_secondary_label', 'לכל המוצרים')); ?></a>
                 </div>
                 <div class="kt-hero__proof">
-                    <span class="kt-rating"><?php echo str_repeat(kindertoys_svg_icon('star'), 5); ?><strong>4.9</strong></span>
+                    <span class="kt-rating" aria-label="<?php esc_attr_e('דירוג לקוחות 4.9 מתוך 5', 'kindertoys'); ?>"><?php echo str_repeat(kindertoys_svg_icon('star'), 5); ?><strong>4.9</strong></span>
                     <span><?php echo kindertoys_svg_icon('truck'); ?><?php esc_html_e('משלוח מחר עד הבית', 'kindertoys'); ?></span>
                     <span><?php echo kindertoys_svg_icon('spark'); ?><?php esc_html_e('+10,000 מוצרים במלאי', 'kindertoys'); ?></span>
                 </div>
@@ -97,7 +97,7 @@ $promo_images = [
         </div>
         <div class="kt-age-grid">
             <?php foreach ([['0-2', 'תינוקות'], ['3-5', 'גיל הגן'], ['6-8', 'בית ספר יסודי'], ['9-12', 'חטיבת ביניים'], ['13+', 'נוער ונערות']] as $age) : ?>
-                <a href="<?php echo esc_url(add_query_arg('age', rawurlencode($age[0]), home_url('/shop/'))); ?>">
+                <a href="<?php echo esc_url(add_query_arg('age', $age[0], home_url('/shop/'))); ?>">
                     <span><?php echo kindertoys_svg_icon('gift'); ?></span>
                     <strong><?php echo esc_html($age[0]); ?></strong>
                     <small><?php echo esc_html($age[1]); ?></small>
@@ -113,7 +113,7 @@ $promo_images = [
         </div>
         <div class="kt-brand-grid">
             <?php foreach (['LEGO', 'PLAYMOBIL', 'מודן', 'NICI', 'פלפוט', 'SMASH', 'Melissa & Doug', 'Janod', 'Hape', 'Ravensburger', 'Bruder', 'Schleich'] as $brand) : ?>
-                <a href="<?php echo esc_url(add_query_arg(['s' => $brand, 'post_type' => 'product'], home_url('/'))); ?>"><?php echo esc_html($brand); ?></a>
+                <a href="<?php echo esc_url(add_query_arg('brand', $brand, home_url('/shop/'))); ?>"><?php echo esc_html($brand); ?></a>
             <?php endforeach; ?>
         </div>
     </section>

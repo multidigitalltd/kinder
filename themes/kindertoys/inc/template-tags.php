@@ -141,7 +141,7 @@ function kindertoys_default_menu(): void
             foreach ($item['columns'] as $title => $links) {
                 echo '<section><h3>' . esc_html($title) . '</h3><ul>';
                 foreach ($links as $link) {
-                    echo '<li><a href="' . esc_url(add_query_arg(['s' => $link, 'post_type' => 'product'], home_url('/'))) . '">' . esc_html($link) . '</a></li>';
+                    echo '<li><a href="' . esc_url(add_query_arg('brand', $link, home_url('/shop/'))) . '">' . esc_html($link) . '</a></li>';
                 }
                 echo '</ul></section>';
             }

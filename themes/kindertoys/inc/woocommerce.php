@@ -250,7 +250,7 @@ function kindertoys_cart_fragments(array $fragments): array
 
     ob_start();
     ?>
-    <span class="kt-cart-total" data-cart-total><?php echo kindertoys_cart_total(); ?></span>
+    <strong class="kt-cart-total" data-cart-total><?php echo kindertoys_cart_total(); ?></strong>
     <?php
     $fragments['[data-cart-total]'] = ob_get_clean();
 

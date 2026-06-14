@@ -5,7 +5,7 @@
  * Version: 0.1.0
  * Author: Multidigital
  * Text Domain: kindertoys-core
- * Requires PHP: 8.1
+ * Requires PHP: 8.3
  * Requires Plugins: woocommerce
  */
 
@@ -20,4 +20,5 @@ define('KINDERTOYS_CORE_DIR', plugin_dir_path(__FILE__));
 
 require_once KINDERTOYS_CORE_DIR . 'includes/settings.php';
 require_once KINDERTOYS_CORE_DIR . 'includes/product-meta.php';
+require_once KINDERTOYS_CORE_DIR . 'includes/filters.php';
 require_once KINDERTOYS_CORE_DIR . 'includes/shortcodes.php';

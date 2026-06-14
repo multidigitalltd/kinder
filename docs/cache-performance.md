@@ -24,6 +24,8 @@ Recommended cached pages:
 - `woocommerce.css` is only enqueued when WooCommerce content is shown.
 - `theme.js` is small, deferred, and dependency-free.
 - Versioning uses `filemtime()` for cache busting.
+- CSS minification is expected to run at the cache layer, for example LiteSpeed Cache, Cloudflare, or WP Rocket. Keep source CSS readable in the repository.
+- If a primary `.woff2` body font URL is configured in `Admin > KinderToys`, the theme preloads it for LCP stability.
 
 ## Images
 

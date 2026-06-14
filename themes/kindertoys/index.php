@@ -23,7 +23,7 @@ get_header();
         <?php endwhile; ?>
         <?php the_posts_pagination(); ?>
     <?php else : ?>
-        <h1><?php esc_html_e('׳׳ ׳ ׳׳¦׳׳• ׳×׳•׳¦׳׳•׳×', 'kindertoys'); ?></h1>
+        <h1><?php esc_html_e('לא נמצאו תוצאות', 'kindertoys'); ?></h1>
     <?php endif; ?>
 </main>
 <?php

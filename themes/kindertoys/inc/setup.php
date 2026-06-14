@@ -45,7 +45,7 @@ function kindertoys_body_classes(array $classes): array
     $classes[] = 'kindertoys';
     $classes[] = 'kindertoys-rtl';
 
-    if (class_exists('WooCommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page())) {
+    if (function_exists('kindertoys_is_woocommerce_context') && kindertoys_is_woocommerce_context()) {
         $classes[] = 'kindertoys-woo';
     }
 

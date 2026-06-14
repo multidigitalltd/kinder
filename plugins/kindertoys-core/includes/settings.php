@@ -132,8 +132,9 @@ function kindertoys_core_register_settings(): void
     ]);
 }
 
-function kindertoys_core_sanitize_settings(array $input): array
+function kindertoys_core_sanitize_settings(mixed $input): array
 {
+    $input = is_array($input) ? $input : [];
     $defaults = kindertoys_core_default_settings();
     $output = [];
 

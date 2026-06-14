@@ -94,12 +94,14 @@ function kindertoys_core_save_product_fields(WC_Product $product): void
     ];
 
     foreach ($fields as $field) {
+        // WooCommerce validates the product edit nonce before this hook runs.
         if (isset($_POST[$field])) {
             $product->update_meta_data($field, sanitize_text_field(wp_unslash($_POST[$field])));
         }
     }
 
     foreach (['_kindertoys_highlights', '_kindertoys_in_box'] as $field) {
+        // WooCommerce validates the product edit nonce before this hook runs.
         if (isset($_POST[$field])) {
             $product->update_meta_data($field, sanitize_textarea_field(wp_unslash($_POST[$field])));
         }

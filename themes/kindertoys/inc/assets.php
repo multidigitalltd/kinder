@@ -25,6 +25,18 @@ function kindertoys_enqueue_assets(): void
     kindertoys_enqueue_script('kindertoys-theme', 'assets/js/theme.js');
 }
 
+add_action('wp_head', 'kindertoys_preload_primary_font', 1);
+function kindertoys_preload_primary_font(): void
+{
+    $font_url = (string) kindertoys_setting('body_font_regular_url', '');
+
+    if ('' === $font_url || ! str_ends_with(strtolower($font_url), '.woff2')) {
+        return;
+    }
+
+    echo '<link rel="preload" href="' . esc_url($font_url) . '" as="font" type="font/woff2" crossorigin>' . "\n";
+}
+
 function kindertoys_enqueue_style(string $handle, string $relative_path, array $deps = []): void
 {
     $path = KINDERTOYS_THEME_DIR . '/' . $relative_path;

@@ -63,11 +63,11 @@ declare(strict_types=1);
             <a class="kt-cart-link" href="<?php echo esc_url(function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/')); ?>" aria-label="<?php esc_attr_e('סל קניות', 'kindertoys'); ?>">
                 <span class="kt-cart-link__text">
                     <span><?php esc_html_e('סל הקניות', 'kindertoys'); ?></span>
-                    <strong data-cart-total><?php echo kindertoys_cart_total(); ?></strong>
+                    <strong class="kt-cart-total" data-cart-total></strong>
                 </span>
                 <span class="kt-cart-link__icon">
                     <?php echo kindertoys_svg_icon('cart'); ?>
-                    <span class="kt-cart-count" data-cart-count><?php echo esc_html((string) kindertoys_cart_count()); ?></span>
+                    <span class="kt-cart-count" data-cart-count>0</span>
                 </span>
             </a>
         </div>
