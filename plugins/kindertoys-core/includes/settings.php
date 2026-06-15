@@ -17,7 +17,6 @@ function kindertoys_core_default_settings(): array
 {
     return [
         'body_font_family' => 'Ploni',
-        'body_font_light_url' => '',
         'body_font_regular_url' => '',
         'body_font_medium_url' => '',
         'body_font_semibold_url' => '',
@@ -270,7 +269,6 @@ function kindertoys_core_render_settings_page(): void
             <h2><?php esc_html_e('Brand and header', 'kindertoys-core'); ?></h2>
             <table class="form-table" role="presentation">
                 <?php kindertoys_core_text_field($settings, 'body_font_family', __('Body font name', 'kindertoys-core'), 'Example: Ploni'); ?>
-                <?php kindertoys_core_text_field($settings, 'body_font_light_url', __('Body light font URL - 300', 'kindertoys-core'), 'Upload a .woff2/.woff file to Media Library and paste its URL here.'); ?>
                 <?php kindertoys_core_text_field($settings, 'body_font_regular_url', __('Body regular font URL - 400', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'body_font_medium_url', __('Body medium font URL - 500', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'body_font_semibold_url', __('Body semibold font URL - 600', 'kindertoys-core')); ?>

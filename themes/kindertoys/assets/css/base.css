@@ -38,6 +38,7 @@ body {
   background: var(--kt-surface);
   color: var(--kt-text);
   font-family: var(--kt-font);
+  font-weight: 400;
   font-size: 16px;
   line-height: 1.55;
   text-rendering: optimizeLegibility;
