@@ -17,11 +17,17 @@ function kindertoys_core_default_settings(): array
 {
     return [
         'body_font_family' => 'Ploni',
+        'body_font_light_url' => '',
         'body_font_regular_url' => '',
+        'body_font_medium_url' => '',
+        'body_font_semibold_url' => '',
         'body_font_bold_url' => '',
+        'body_font_black_url' => '',
         'display_font_family' => 'PloniYad',
         'display_font_regular_url' => '',
+        'display_font_semibold_url' => '',
         'display_font_bold_url' => '',
+        'display_font_black_url' => '',
         'font_family' => '"Ploni", "Arial", system-ui, sans-serif',
         'top_bar_text' => 'משלוח מהיר חינם מעל 299 ₪ | מועדון הלקוחות - 10% הנחה בקניה הראשונה',
         'top_promo_1' => 'משלוח חינם בהזמנה מעל 299 ₪',
@@ -187,11 +193,17 @@ function kindertoys_core_render_settings_page(): void
             <h2><?php esc_html_e('Brand and header', 'kindertoys-core'); ?></h2>
             <table class="form-table" role="presentation">
                 <?php kindertoys_core_text_field($settings, 'body_font_family', __('Body font name', 'kindertoys-core'), 'Example: Ploni'); ?>
-                <?php kindertoys_core_text_field($settings, 'body_font_regular_url', __('Body regular font file URL', 'kindertoys-core'), 'Upload a .woff2/.woff file to Media Library and paste its URL here.'); ?>
-                <?php kindertoys_core_text_field($settings, 'body_font_bold_url', __('Body bold font file URL', 'kindertoys-core'), 'Optional but recommended for bold text.'); ?>
+                <?php kindertoys_core_text_field($settings, 'body_font_light_url', __('Body light font URL - 300', 'kindertoys-core'), 'Upload a .woff2/.woff file to Media Library and paste its URL here.'); ?>
+                <?php kindertoys_core_text_field($settings, 'body_font_regular_url', __('Body regular font URL - 400', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'body_font_medium_url', __('Body medium font URL - 500', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'body_font_semibold_url', __('Body semibold font URL - 600', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'body_font_bold_url', __('Body bold font URL - 700', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'body_font_black_url', __('Body black font URL - 900', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'display_font_family', __('Display/headings font name', 'kindertoys-core'), 'Example: PloniYad'); ?>
-                <?php kindertoys_core_text_field($settings, 'display_font_regular_url', __('Display regular font file URL', 'kindertoys-core'), 'Used for headings if provided.'); ?>
-                <?php kindertoys_core_text_field($settings, 'display_font_bold_url', __('Display bold font file URL', 'kindertoys-core'), 'Used for heavy headings if provided.'); ?>
+                <?php kindertoys_core_text_field($settings, 'display_font_regular_url', __('Display regular font URL - 400', 'kindertoys-core'), 'Used for headings if provided.'); ?>
+                <?php kindertoys_core_text_field($settings, 'display_font_semibold_url', __('Display semibold font URL - 600', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'display_font_bold_url', __('Display bold font URL - 800', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'display_font_black_url', __('Display black font URL - 900', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'font_family', __('Fallback font stack', 'kindertoys-core'), 'Example: "Ploni", "Arial", system-ui, sans-serif'); ?>
                 <?php kindertoys_core_text_field($settings, 'top_bar_text', __('Top bar text', 'kindertoys-core')); ?>
                 <?php for ($i = 1; $i <= 5; $i++) : ?>

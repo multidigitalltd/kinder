@@ -49,23 +49,26 @@ declare(strict_types=1);
             ?>
         </a>
 
-        <form role="search" method="get" class="kt-search" action="<?php echo esc_url(home_url('/')); ?>">
+        <form role="search" method="get" class="kt-search" action="<?php echo esc_url(home_url('/')); ?>" autocomplete="off" data-live-search>
             <label class="screen-reader-text" for="kt-search-field"><?php esc_html_e('חיפוש מוצרים', 'kindertoys'); ?></label>
             <span class="kt-search__icon"><?php echo kindertoys_svg_icon('search'); ?></span>
-            <input id="kt-search-field" type="search" name="s" value="<?php echo esc_attr(get_search_query()); ?>" placeholder="<?php echo esc_attr((string) kindertoys_setting('search_placeholder', 'חפשו משחקים, מותגים או קטגוריות...')); ?>">
+            <input id="kt-search-field" type="search" name="s" value="<?php echo esc_attr(get_search_query()); ?>" placeholder="<?php echo esc_attr((string) kindertoys_setting('search_placeholder', 'חפשו משחקים, מותגים או קטגוריות...')); ?>" aria-autocomplete="list" aria-expanded="false" aria-controls="kt-search-results" data-live-search-input>
             <input type="hidden" name="post_type" value="product">
             <button class="kt-button kt-search__submit" type="submit"><?php esc_html_e('חיפוש', 'kindertoys'); ?></button>
+            <div id="kt-search-results" class="kt-search-results" role="listbox" aria-label="<?php esc_attr_e('תוצאות חיפוש מהירות', 'kindertoys'); ?>" hidden data-live-search-results></div>
         </form>
 
         <div class="kt-header__actions">
             <a class="kt-phone-link" href="<?php echo kindertoys_phone_href(); ?>"><?php echo kindertoys_svg_icon('phone'); ?><span><?php echo esc_html((string) kindertoys_setting('phone', '03-5293383')); ?></span></a>
-            <a class="kt-icon-button" href="<?php echo esc_url(function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : wp_login_url()); ?>" aria-label="<?php esc_attr_e('התחברות', 'kindertoys'); ?>">
+            <a class="kt-icon-button kt-header-action" href="<?php echo esc_url(function_exists('wc_get_page_permalink') ? wc_get_page_permalink('myaccount') : wp_login_url()); ?>" aria-label="<?php esc_attr_e('התחברות', 'kindertoys'); ?>">
                 <?php echo kindertoys_svg_icon('user'); ?>
+                <span><?php esc_html_e('התחברות', 'kindertoys'); ?></span>
             </a>
-            <a class="kt-icon-button" href="<?php echo esc_url(home_url('/wishlist/')); ?>" aria-label="<?php esc_attr_e('מועדפים', 'kindertoys'); ?>">
+            <a class="kt-icon-button kt-header-action" href="<?php echo esc_url(home_url('/wishlist/')); ?>" aria-label="<?php esc_attr_e('מועדפים', 'kindertoys'); ?>">
                 <?php echo kindertoys_svg_icon('heart'); ?>
+                <span><?php esc_html_e('מועדפים', 'kindertoys'); ?></span>
             </a>
-            <a class="kt-cart-link" href="<?php echo esc_url(function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/')); ?>" aria-label="<?php esc_attr_e('סל קניות', 'kindertoys'); ?>">
+            <a class="kt-cart-link" href="<?php echo esc_url(function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/')); ?>" aria-label="<?php esc_attr_e('סל קניות', 'kindertoys'); ?>" data-cart-drawer-open>
                 <span class="kt-cart-link__text">
                     <span><?php esc_html_e('סל הקניות', 'kindertoys'); ?></span>
                     <strong class="kt-cart-total" data-cart-total></strong>
@@ -96,4 +99,5 @@ declare(strict_types=1);
         </div>
     </nav>
     <div class="kt-nav-backdrop" data-menu-close></div>
+    <?php kindertoys_cart_drawer(); ?>
 </header>

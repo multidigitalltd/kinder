@@ -23,6 +23,17 @@ function kindertoys_enqueue_assets(): void
 
     kindertoys_enqueue_inline_settings_css();
     kindertoys_enqueue_script('kindertoys-theme', 'assets/js/theme.js');
+    wp_localize_script('kindertoys-theme', 'kindertoysAjax', [
+        'ajaxUrl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('kindertoys_ajax'),
+        'cartUrl' => function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/'),
+        'checkoutUrl' => function_exists('wc_get_checkout_url') ? wc_get_checkout_url() : home_url('/checkout/'),
+        'i18n' => [
+            'searching' => __('מחפשים...', 'kindertoys'),
+            'noResults' => __('לא נמצאו תוצאות', 'kindertoys'),
+            'error' => __('משהו לא נטען. נסו שוב.', 'kindertoys'),
+        ],
+    ]);
 }
 
 add_action('wp_head', 'kindertoys_preload_primary_font', 1);
@@ -71,10 +82,16 @@ function kindertoys_enqueue_inline_settings_css(): void
     $fallback = kindertoys_css_font_stack($fallback, '"Ploni", "Arial", system-ui, sans-serif');
 
     $css = '';
+    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_light_url', ''), 300);
     $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_regular_url', ''), 400);
+    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_medium_url', ''), 500);
+    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_semibold_url', ''), 600);
     $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_bold_url', ''), 700);
+    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_black_url', ''), 900);
     $css .= kindertoys_font_face_css($display_font, (string) kindertoys_setting('display_font_regular_url', ''), 400);
+    $css .= kindertoys_font_face_css($display_font, (string) kindertoys_setting('display_font_semibold_url', ''), 600);
     $css .= kindertoys_font_face_css($display_font, (string) kindertoys_setting('display_font_bold_url', ''), 800);
+    $css .= kindertoys_font_face_css($display_font, (string) kindertoys_setting('display_font_black_url', ''), 900);
     $css .= ':root{--kt-font:"' . $body_font . '",' . $fallback . ';--kt-display-font:"' . $display_font . '","' . $body_font . '",' . $fallback . ';}';
 
     wp_add_inline_style('kindertoys-base', $css);
