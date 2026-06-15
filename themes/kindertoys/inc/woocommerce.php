@@ -105,16 +105,26 @@ function kindertoys_product_card_actions(): void
         return;
     }
 
-    echo '<div class="kt-product-card__actions">';
-    woocommerce_template_loop_add_to_cart([
-        'class' => implode(' ', array_filter([
-            'button',
-            'kt-button',
-            'kt-button--cart',
-            $product->is_purchasable() && $product->is_in_stock() ? 'add_to_cart_button' : '',
-            $product->supports('ajax_add_to_cart') ? 'ajax_add_to_cart' : '',
-        ])),
+    $url = $product->add_to_cart_url();
+    $label = $product->add_to_cart_description();
+    $classes = implode(' ', array_filter([
+        'button',
+        'kt-product-card__add',
+        $product->is_purchasable() && $product->is_in_stock() ? 'add_to_cart_button' : '',
+        $product->supports('ajax_add_to_cart') ? 'ajax_add_to_cart' : '',
+    ]));
+    $attributes = wc_implode_html_attributes([
+        'href' => esc_url($url),
+        'data-quantity' => '1',
+        'data-product_id' => (string) $product->get_id(),
+        'data-product_sku' => $product->get_sku(),
+        'aria-label' => $label,
+        'rel' => 'nofollow',
+        'class' => $classes,
     ]);
+
+    echo '<div class="kt-product-card__actions">';
+    echo '<a ' . $attributes . '><span class="screen-reader-text">' . esc_html($product->add_to_cart_text()) . '</span>' . kindertoys_svg_icon('plus') . '</a>';
     echo '</div>';
 }
 
@@ -383,6 +393,13 @@ function kindertoys_ajax_search_products(): void
         'posts_per_page' => 6,
         'no_found_rows' => true,
         'ignore_sticky_posts' => true,
+        'meta_query' => [
+            [
+                'key' => '_stock_status',
+                'value' => 'outofstock',
+                'compare' => '!=',
+            ],
+        ],
     ]);
 
     ob_start();
@@ -391,7 +408,7 @@ function kindertoys_ajax_search_products(): void
         while ($query->have_posts()) {
             $query->the_post();
             $product = wc_get_product(get_the_ID());
-            if (! $product instanceof WC_Product) {
+            if (! $product instanceof WC_Product || ! $product->is_in_stock()) {
                 continue;
             }
             echo '<a class="kt-search-result" href="' . esc_url(get_permalink()) . '" role="option">';

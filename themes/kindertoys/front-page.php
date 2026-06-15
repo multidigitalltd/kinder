@@ -14,7 +14,13 @@ $promo_images = [
     3 => kindertoys_asset_uri('images/promo-blocks.jpg'),
 ];
 $hero_image = (string) kindertoys_setting('hero_image_url', '');
-$hero_image = '' !== $hero_image ? esc_url($hero_image) : kindertoys_asset_uri('images/hero-kindy-scene.png');
+if ('' !== $hero_image) {
+    $hero_image = esc_url($hero_image);
+} else {
+    $hero_image = file_exists(KINDERTOYS_THEME_DIR . '/assets/images/kindy-hero.png')
+        ? kindertoys_asset_uri('images/kindy-hero.png')
+        : kindertoys_asset_uri('images/hero-kindy-scene.png');
+}
 ?>
 <main id="primary" class="site-main kt-home">
     <section class="kt-hero">
@@ -88,7 +94,7 @@ $hero_image = '' !== $hero_image ? esc_url($hero_image) : kindertoys_asset_uri('
                 <p class="kt-eyebrow"><?php echo esc_html((string) kindertoys_setting('products_eyebrow', 'מוצרים חמים')); ?></p>
                 <h2><?php echo esc_html((string) kindertoys_setting('products_title', 'הנבחרים של קינדי')); ?></h2>
             </div>
-            <?php echo do_shortcode('[products limit="10" columns="5" orderby="popularity"]'); ?>
+            <?php echo do_shortcode('[products limit="10" columns="5" orderby="popularity" stock_status="instock" visibility="visible"]'); ?>
         </section>
     <?php endif; ?>
 

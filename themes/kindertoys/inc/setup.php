@@ -51,3 +51,21 @@ function kindertoys_body_classes(array $classes): array
 
     return $classes;
 }
+
+add_action('admin_notices', 'kindertoys_core_version_notice');
+function kindertoys_core_version_notice(): void
+{
+    if (! current_user_can('activate_plugins')) {
+        return;
+    }
+
+    if (defined('KINDERTOYS_CORE_VERSION') && version_compare((string) KINDERTOYS_CORE_VERSION, KINDERTOYS_THEME_VERSION, '>=')) {
+        return;
+    }
+
+    $message = defined('KINDERTOYS_CORE_VERSION')
+        ? __('KinderToys Core is active but older than the theme. Upload the matching plugin ZIP manually.', 'kindertoys')
+        : __('KinderToys Core is not active. Upload and activate the matching plugin ZIP manually.', 'kindertoys');
+
+    echo '<div class="notice notice-warning"><p>' . esc_html($message) . '</p></div>';
+}

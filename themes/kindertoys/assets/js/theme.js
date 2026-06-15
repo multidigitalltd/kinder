@@ -7,9 +7,6 @@
   const cartDrawer = document.querySelector("[data-cart-drawer]");
   const cartOpeners = document.querySelectorAll("[data-cart-drawer-open]");
   const cartCloseEls = document.querySelectorAll("[data-cart-drawer-close]");
-  const cartItems = document.querySelector("[data-cart-drawer-items]");
-  const cartCountEls = document.querySelectorAll("[data-cart-count]");
-  const cartTotalEls = document.querySelectorAll("[data-cart-total]");
   const searchForm = document.querySelector("[data-live-search]");
   const searchInput = document.querySelector("[data-live-search-input]");
   const searchResults = document.querySelector("[data-live-search-results]");
@@ -83,14 +80,37 @@
   };
 
   const updateCartMeta = (data) => {
-    cartItems && data.items && (cartItems.innerHTML = data.items);
-    cartCountEls.forEach((el) => {
+    const drawerItems = document.querySelector("[data-cart-drawer-items]");
+    drawerItems && data.items && (drawerItems.innerHTML = data.items);
+    document.querySelectorAll("[data-cart-count]").forEach((el) => {
       el.textContent = String(data.count ?? "0");
     });
-    cartTotalEls.forEach((el) => {
+    document.querySelectorAll("[data-cart-total]").forEach((el) => {
       el.innerHTML = data.total || "";
     });
   };
+
+  const applyCartFragments = (fragments) => {
+    if (!fragments) {
+      return;
+    }
+
+    Object.entries(fragments).forEach(([selector, html]) => {
+      if (typeof html !== "string") {
+        return;
+      }
+
+      document.querySelectorAll(selector).forEach((node) => {
+        node.outerHTML = html;
+      });
+    });
+  };
+
+  if (window.jQuery) {
+    window.jQuery(document.body).on("added_to_cart removed_from_cart wc_fragments_refreshed", (event, fragments) => {
+      applyCartFragments(fragments);
+    });
+  }
 
   const postCartUpdate = async (cartItemKey, quantity) => {
     if (!ajax.ajaxUrl || !ajax.nonce) {
@@ -121,7 +141,7 @@
     }
   };
 
-  cartItems?.addEventListener("click", (event) => {
+  document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-cart-qty], [data-cart-remove]");
     if (!button) {
       return;
@@ -141,7 +161,7 @@
     postCartUpdate(item.getAttribute("data-cart-item"), next);
   });
 
-  cartItems?.addEventListener("change", (event) => {
+  document.addEventListener("change", (event) => {
     const input = event.target.closest("[data-cart-qty-input]");
     const item = input?.closest("[data-cart-item]");
     if (!input || !item) {
