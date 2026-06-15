@@ -10,13 +10,13 @@
 
 .kt-top-promos {
   overflow: hidden;
-  min-height: 0;
-  max-height: 0;
-  background: linear-gradient(270deg, var(--kt-red), var(--kt-red-dark) 48%, var(--kt-navy));
+  min-height: 36px;
+  max-height: none;
+  background: linear-gradient(270deg, var(--kt-red) 0 42%, #823b69 58%, var(--kt-navy) 100%);
   color: var(--kt-white);
   font-size: .82rem;
   font-weight: 900;
-  visibility: hidden;
+  visibility: visible;
 }
 
 .kt-top-promos__track {
@@ -58,15 +58,15 @@
   align-items: center;
   justify-content: center;
   gap: .5rem;
-  min-height: 0;
-  max-height: 0;
-  padding: 0 1rem;
+  min-height: 36px;
+  max-height: none;
+  padding: .35rem 1rem;
   background: var(--kt-navy);
   color: var(--kt-white);
   font-size: .875rem;
   font-weight: 700;
   text-align: center;
-  visibility: hidden;
+  visibility: visible;
 }
 
 .kt-header__main {
@@ -545,7 +545,7 @@
   z-index: 95;
   inset: 0;
   display: grid;
-  justify-items: end;
+  justify-items: start;
   pointer-events: none;
 }
 
@@ -560,7 +560,7 @@
   background: var(--kt-white);
   box-shadow: -24px 0 55px rgba(15, 35, 70, .22);
   opacity: 0;
-  transform: translateX(105%);
+  transform: translateX(-105%);
   transition: opacity .2s ease, transform .22s ease;
 }
 
@@ -1470,8 +1470,8 @@
   }
 
   .kt-top-promos {
-    min-height: 0;
-    max-height: 0;
+    min-height: 32px;
+    max-height: none;
   }
 
   .kt-top-promos span {

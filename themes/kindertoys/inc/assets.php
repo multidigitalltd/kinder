@@ -68,7 +68,7 @@ function kindertoys_enqueue_script(string $handle, string $relative_path, array 
 
 function kindertoys_is_woocommerce_context(): bool
 {
-    return class_exists('WooCommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page());
+    return class_exists('WooCommerce') && (is_front_page() || is_woocommerce() || is_cart() || is_checkout() || is_account_page());
 }
 
 function kindertoys_enqueue_inline_settings_css(): void

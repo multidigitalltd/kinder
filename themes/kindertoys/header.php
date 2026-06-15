@@ -99,5 +99,4 @@ declare(strict_types=1);
         </div>
     </nav>
     <div class="kt-nav-backdrop" data-menu-close></div>
-    <?php kindertoys_cart_drawer(); ?>
 </header>

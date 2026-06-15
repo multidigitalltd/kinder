@@ -42,6 +42,8 @@ function kindertoys_woocommerce_hooks(): void
     add_filter('woocommerce_product_tabs', 'kindertoys_product_tabs');
     add_filter('woocommerce_add_to_cart_fragments', 'kindertoys_cart_fragments');
 
+    add_action('wp_footer', 'kindertoys_cart_drawer', 20);
+
     add_action('wp_ajax_kindertoys_update_cart_item', 'kindertoys_ajax_update_cart_item');
     add_action('wp_ajax_nopriv_kindertoys_update_cart_item', 'kindertoys_ajax_update_cart_item');
     add_action('wp_ajax_kindertoys_search_products', 'kindertoys_ajax_search_products');
@@ -76,6 +78,7 @@ function kindertoys_product_card_media(): void
         echo '<span class="kt-badge">' . esc_html($custom_badge) . '</span>';
     }
 
+    echo '<a class="kt-product-card__wish" href="' . esc_url(home_url('/wishlist/')) . '" aria-label="' . esc_attr__('הוספה למועדפים', 'kindertoys') . '">' . kindertoys_svg_icon('heart') . '</a>';
     echo woocommerce_get_product_thumbnail('kindertoys-card');
     echo '</div>';
 }
