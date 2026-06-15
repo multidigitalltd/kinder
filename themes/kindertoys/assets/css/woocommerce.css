@@ -321,6 +321,100 @@
   color: var(--kt-white);
 }
 
+.kt-search-page {
+  padding-block: 2rem 4rem;
+}
+
+.kt-search-page__hero {
+  display: grid;
+  gap: .75rem;
+  margin-bottom: 1.4rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid rgba(24, 51, 109, .1);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(217, 39, 50, .12), transparent 18rem),
+    linear-gradient(225deg, #fff, var(--kt-blue-soft));
+  box-shadow: var(--kt-shadow);
+}
+
+.kt-search-page__hero h1 {
+  margin: 0;
+  color: var(--kt-navy);
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 1.08;
+}
+
+.kt-search-page__form {
+  display: flex;
+  gap: .55rem;
+  align-items: center;
+  max-width: 42rem;
+  padding: .35rem;
+  border: 2px solid rgba(24, 51, 109, .1);
+  border-radius: 999px;
+  background: var(--kt-white);
+}
+
+.kt-search-page__form input[type="search"] {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  padding-inline: 1rem;
+  background: transparent;
+  color: var(--kt-navy);
+  font-weight: 800;
+}
+
+.kt-search-page__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  color: var(--kt-navy);
+  font-weight: 900;
+}
+
+.kt-search-page__meta a {
+  color: var(--kt-red);
+}
+
+.kt-search-page__empty {
+  display: grid;
+  place-items: center;
+  gap: .75rem;
+  min-height: 22rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid rgba(24, 51, 109, .1);
+  border-radius: 28px;
+  background: var(--kt-white);
+  box-shadow: var(--kt-shadow);
+  text-align: center;
+}
+
+.kt-search-page__empty > svg {
+  width: 3rem;
+  height: 3rem;
+  color: var(--kt-red);
+}
+
+.kt-search-page__empty h2 {
+  margin: 0;
+  color: var(--kt-navy);
+  font-size: clamp(1.6rem, 4vw, 3rem);
+  font-weight: 900;
+}
+
+.kt-search-page__empty p {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--kt-muted);
+  font-weight: 700;
+}
+
 .woocommerce div.product {
   display: grid;
   grid-template-columns: minmax(18rem, 1.05fr) minmax(18rem, .95fr);
@@ -905,6 +999,12 @@
 @media (max-width: 540px) {
   .woocommerce ul.products {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kt-search-page__form {
+    align-items: stretch;
+    border-radius: 18px;
+    flex-direction: column;
   }
 
   .kt-checkout-bump__inner {
