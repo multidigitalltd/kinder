@@ -38,10 +38,55 @@
     });
   }
 
+  const a11yKey = "kindertoys_a11y";
+  const getA11yPrefs = () => {
+    try {
+      return JSON.parse(window.localStorage.getItem(a11yKey) || "{}") || {};
+    } catch (error) {
+      return {};
+    }
+  };
+  const setA11yPrefs = (prefs) => {
+    window.localStorage.setItem(a11yKey, JSON.stringify(prefs));
+    document.documentElement.classList.toggle("kt-a11y-text", Boolean(prefs.text));
+    document.documentElement.classList.toggle("kt-a11y-contrast", Boolean(prefs.contrast));
+    document.documentElement.classList.toggle("kt-a11y-links", Boolean(prefs.links));
+    document.documentElement.classList.toggle("kt-a11y-motion", Boolean(prefs.motion));
+  };
+  setA11yPrefs(getA11yPrefs());
+
   if (a11yToggle) {
+    const panel = document.createElement("div");
+    panel.className = "kt-a11y-panel";
+    panel.hidden = true;
+    panel.innerHTML = `
+      <strong>נגישות</strong>
+      <button type="button" data-a11y-option="text">הגדלת טקסט</button>
+      <button type="button" data-a11y-option="contrast">ניגודיות גבוהה</button>
+      <button type="button" data-a11y-option="links">הדגשת קישורים</button>
+      <button type="button" data-a11y-option="motion">צמצום תנועה</button>
+      <button type="button" data-a11y-reset>איפוס</button>
+    `;
+    a11yToggle.after(panel);
+    a11yToggle.setAttribute("aria-expanded", "false");
+
     a11yToggle.addEventListener("click", () => {
-      const isActive = document.documentElement.classList.toggle("kt-a11y-boost");
-      a11yToggle.setAttribute("aria-pressed", String(isActive));
+      panel.hidden = !panel.hidden;
+      a11yToggle.setAttribute("aria-expanded", String(!panel.hidden));
+    });
+
+    panel.addEventListener("click", (event) => {
+      const option = event.target.closest("[data-a11y-option]");
+      const reset = event.target.closest("[data-a11y-reset]");
+      if (!option && !reset) {
+        return;
+      }
+      const prefs = reset ? {} : getA11yPrefs();
+      if (option) {
+        const key = option.getAttribute("data-a11y-option");
+        prefs[key] = !prefs[key];
+      }
+      setA11yPrefs(prefs);
     });
   }
 
@@ -179,11 +224,44 @@
     loadWishlist();
   });
 
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-wishlist-add-to-cart]");
+    if (!button || !ajax.ajaxUrl || !ajax.nonce) {
+      return;
+    }
+
+    event.preventDefault();
+    button.disabled = true;
+    const body = new URLSearchParams({
+      action: "kindertoys_add_product_to_cart",
+      nonce: ajax.nonce,
+      product_id: button.getAttribute("data-product-id") || "",
+    });
+
+    try {
+      const response = await fetch(ajax.ajaxUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+      const result = await response.json();
+      if (result?.success) {
+        updateCartMeta(result.data || {});
+        showToast(result.data?.message || "המוצר נוסף לסל", "success");
+      } else {
+        showToast(result?.data?.message || ajax.i18n?.error || "לא הצלחנו להוסיף לסל", "error");
+      }
+    } finally {
+      button.disabled = false;
+    }
+  });
+
   const setCartBusy = (isBusy) => {
     cartDrawer?.classList.toggle("is-busy", isBusy);
   };
 
-  const showToast = (message) => {
+  const showToast = (message, type = "info") => {
     if (!message) {
       return;
     }
@@ -199,9 +277,23 @@
     }
 
     toast.textContent = message;
+    toast.dataset.type = type;
     toast.classList.add("is-visible");
     window.clearTimeout(showToast.timer);
-    showToast.timer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
+    showToast.timer = window.setTimeout(() => toast.classList.remove("is-visible"), 2600);
+  };
+
+  const captureWooNotices = () => {
+    document.querySelectorAll(".woocommerce-message, .woocommerce-info, .woocommerce-error").forEach((notice) => {
+      if (notice.classList.contains("kt-notice-captured")) {
+        return;
+      }
+      const message = notice.textContent?.replace(/\s+/g, " ").trim();
+      if (message) {
+        showToast(message, notice.classList.contains("woocommerce-error") ? "error" : "success");
+      }
+      notice.classList.add("kt-notice-captured");
+    });
   };
 
   const updateCartMeta = (data) => {
@@ -231,6 +323,8 @@
     });
   };
 
+  captureWooNotices();
+
   const refreshCart = async () => {
     if (!ajax.ajaxUrl || !ajax.nonce) {
       return;
@@ -254,6 +348,8 @@
   if (window.jQuery) {
     window.jQuery(document.body).on("added_to_cart removed_from_cart wc_fragments_refreshed", (event, fragments) => {
       applyCartFragments(fragments);
+      captureWooNotices();
+      refreshCart();
     });
   }
 
@@ -280,6 +376,9 @@
       const result = await response.json();
       if (result?.success) {
         updateCartMeta(result.data || {});
+        showToast(result.data?.message || "הסל עודכן", "success");
+      } else {
+        showToast(result?.data?.message || ajax.i18n?.error || "לא הצלחנו לעדכן את הסל", "error");
       }
     } finally {
       setCartBusy(false);
@@ -314,6 +413,43 @@
     }
 
     postCartUpdate(item.getAttribute("data-cart-item"), Number.parseInt(input.value || "0", 10));
+  });
+
+  document.addEventListener("change", async (event) => {
+    const input = event.target.closest("[data-checkout-bump-toggle]");
+    if (!input || !ajax.ajaxUrl || !ajax.nonce) {
+      return;
+    }
+
+    input.disabled = true;
+    const body = new URLSearchParams({
+      action: "kindertoys_toggle_checkout_bump",
+      nonce: ajax.nonce,
+      product_id: input.getAttribute("data-product-id") || "",
+      cart_item_key: input.getAttribute("data-cart-item-key") || "",
+      enabled: input.checked ? "1" : "0",
+    });
+
+    try {
+      const response = await fetch(ajax.ajaxUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+      const result = await response.json();
+      if (result?.success) {
+        input.setAttribute("data-cart-item-key", result.data?.cart_item_key || "");
+        showToast(result.data?.message || "ההזמנה עודכנה", "success");
+        window.jQuery?.(document.body).trigger("update_checkout");
+        refreshCart();
+      } else {
+        input.checked = !input.checked;
+        showToast(result?.data?.message || ajax.i18n?.error || "לא הצלחנו לעדכן את ההזמנה", "error");
+      }
+    } finally {
+      input.disabled = false;
+    }
   });
 
   const hideSearchResults = () => {

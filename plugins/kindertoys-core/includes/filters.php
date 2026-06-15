@@ -27,6 +27,7 @@ function kindertoys_core_apply_product_filters(WP_Query $query): void
     }
 
     $meta_query = (array) $query->get('meta_query');
+    $tax_query = (array) $query->get('tax_query');
 
     if (isset($_GET['age']) && ! is_array($_GET['age'])) {
         $age = sanitize_text_field(wp_unslash($_GET['age']));
@@ -50,7 +51,60 @@ function kindertoys_core_apply_product_filters(WP_Query $query): void
         }
     }
 
+    if (isset($_GET['stock']) && 'instock' === sanitize_key((string) wp_unslash($_GET['stock']))) {
+        $meta_query[] = [
+            'key' => '_stock_status',
+            'value' => 'instock',
+            'compare' => '=',
+        ];
+    }
+
+    if (isset($_GET['sale']) && '1' === (string) wp_unslash($_GET['sale'])) {
+        $query->set('post__in', array_merge([0], wc_get_product_ids_on_sale()));
+    }
+
+    if (isset($_GET['min_price']) && ! is_array($_GET['min_price'])) {
+        $raw_min_price = wp_unslash((string) $_GET['min_price']);
+        $min_price = max(0, (float) (function_exists('wc_format_decimal') ? wc_format_decimal($raw_min_price) : preg_replace('/[^\d.]/', '', $raw_min_price)));
+        if ($min_price > 0) {
+            $meta_query[] = [
+                'key' => '_price',
+                'value' => $min_price,
+                'compare' => '>=',
+                'type' => 'DECIMAL(10,2)',
+            ];
+        }
+    }
+
+    if (isset($_GET['max_price']) && ! is_array($_GET['max_price'])) {
+        $raw_max_price = wp_unslash((string) $_GET['max_price']);
+        $max_price = max(0, (float) (function_exists('wc_format_decimal') ? wc_format_decimal($raw_max_price) : preg_replace('/[^\d.]/', '', $raw_max_price)));
+        if ($max_price > 0) {
+            $meta_query[] = [
+                'key' => '_price',
+                'value' => $max_price,
+                'compare' => '<=',
+                'type' => 'DECIMAL(10,2)',
+            ];
+        }
+    }
+
+    if (isset($_GET['product_cat']) && ! is_array($_GET['product_cat'])) {
+        $category = sanitize_title(wp_unslash((string) $_GET['product_cat']));
+        if ('' !== $category && taxonomy_exists('product_cat')) {
+            $tax_query[] = [
+                'taxonomy' => 'product_cat',
+                'field' => 'slug',
+                'terms' => [$category],
+            ];
+        }
+    }
+
     if (! empty($meta_query)) {
         $query->set('meta_query', $meta_query);
+    }
+
+    if (! empty($tax_query)) {
+        $query->set('tax_query', $tax_query);
     }
 }

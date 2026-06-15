@@ -63,6 +63,20 @@ function kindertoys_core_default_settings(): array
         'featured_products_limit' => '10',
         'featured_category_ids' => [],
         'featured_product_ids' => [],
+        'free_shipping_threshold' => '299',
+        'checkout_bump_enabled' => '1',
+        'checkout_bump_product_id' => '0',
+        'checkout_bump_title' => 'רוצים להוסיף עוד משהו קטן?',
+        'checkout_bump_text' => 'הוסיפו מוצר משלים להזמנה בלחיצה אחת, בלי לעזוב את התשלום.',
+        'checkout_bump_discount_percent' => '0',
+        'footer_about_title' => 'KinderToys',
+        'footer_about_text' => 'משחקים, צעצועים ומוצרי יצירה לילדים - בחוויית קנייה מהירה, נגישה ושמחה.',
+        'footer_service_title' => 'שירות לקוחות',
+        'footer_contact_label' => 'צור קשר',
+        'footer_contact_url' => '/contact/',
+        'footer_shipping_label' => 'משלוחים והחזרות',
+        'footer_shipping_url' => '/shipping-returns/',
+        'footer_bottom_text' => '',
         'age_eyebrow' => 'בוחרים לפי גיל',
         'age_title' => 'למצוא את המתנה המושלמת',
         'brands_eyebrow' => 'מותגים אהובים',
@@ -183,6 +197,26 @@ function kindertoys_core_sanitize_settings(mixed $input): array
             continue;
         }
 
+        if ('free_shipping_threshold' === $key) {
+            $output[$key] = (string) max(0, absint($value));
+            continue;
+        }
+
+        if ('checkout_bump_product_id' === $key) {
+            $output[$key] = (string) absint($value);
+            continue;
+        }
+
+        if ('checkout_bump_discount_percent' === $key) {
+            $output[$key] = (string) min(80, max(0, absint($value)));
+            continue;
+        }
+
+        if ('checkout_bump_enabled' === $key) {
+            $output[$key] = empty($value) ? '0' : '1';
+            continue;
+        }
+
         if ('featured_products_mode' === $key) {
             $allowed = ['popular', 'new', 'sale', 'category', 'manual'];
             $mode = sanitize_key((string) $value);
@@ -266,6 +300,8 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'products_eyebrow', __('Products eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'products_title', __('Products title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_featured_products_fields($settings); ?>
+                <?php kindertoys_core_text_field($settings, 'free_shipping_threshold', __('Free shipping threshold', 'kindertoys-core'), 'Cart drawer and cart page progress amount. Use 0 to hide.'); ?>
+                <?php kindertoys_core_checkout_bump_fields($settings); ?>
                 <?php kindertoys_core_text_field($settings, 'age_eyebrow', __('Age section eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'age_title', __('Age section title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'brands_eyebrow', __('Brands eyebrow', 'kindertoys-core')); ?>
@@ -286,6 +322,18 @@ function kindertoys_core_render_settings_page(): void
                 <?php endfor; ?>
             </table>
 
+            <h2><?php esc_html_e('Footer', 'kindertoys-core'); ?></h2>
+            <table class="form-table" role="presentation">
+                <?php kindertoys_core_text_field($settings, 'footer_about_title', __('Footer about title', 'kindertoys-core')); ?>
+                <?php kindertoys_core_textarea_field($settings, 'footer_about_text', __('Footer about text', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'footer_service_title', __('Footer service title', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'footer_contact_label', __('Footer contact label', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'footer_contact_url', __('Footer contact URL', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'footer_shipping_label', __('Footer shipping label', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'footer_shipping_url', __('Footer shipping URL', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'footer_bottom_text', __('Footer bottom text', 'kindertoys-core'), 'Leave empty to show copyright and site name.'); ?>
+            </table>
+
             <?php submit_button(); ?>
         </form>
     </div>
@@ -300,6 +348,22 @@ function kindertoys_core_text_field(array $settings, string $key, string $label,
         <th scope="row"><label for="<?php echo esc_attr($key); ?>"><?php echo esc_html($label); ?></label></th>
         <td>
             <input class="regular-text" type="text" id="<?php echo esc_attr($key); ?>" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr((string) ($settings[$key] ?? '')); ?>">
+            <?php if ('' !== $description) : ?>
+                <p class="description"><?php echo esc_html($description); ?></p>
+            <?php endif; ?>
+        </td>
+    </tr>
+    <?php
+}
+
+function kindertoys_core_textarea_field(array $settings, string $key, string $label, string $description = ''): void
+{
+    $name = KINDERTOYS_CORE_SETTINGS_OPTION . '[' . $key . ']';
+    ?>
+    <tr>
+        <th scope="row"><label for="<?php echo esc_attr($key); ?>"><?php echo esc_html($label); ?></label></th>
+        <td>
+            <textarea class="large-text" rows="4" id="<?php echo esc_attr($key); ?>" name="<?php echo esc_attr($name); ?>"><?php echo esc_textarea((string) ($settings[$key] ?? '')); ?></textarea>
             <?php if ('' !== $description) : ?>
                 <p class="description"><?php echo esc_html($description); ?></p>
             <?php endif; ?>
@@ -369,5 +433,46 @@ function kindertoys_core_featured_products_fields(array $settings): void
             <p class="description"><?php esc_html_e('Used when source is Selected products. Hold Ctrl/Cmd to choose more than one.', 'kindertoys-core'); ?></p>
         </td>
     </tr>
+    <?php
+}
+
+function kindertoys_core_checkout_bump_fields(array $settings): void
+{
+    $option = KINDERTOYS_CORE_SETTINGS_OPTION;
+    $product_id = absint($settings['checkout_bump_product_id'] ?? 0);
+    $products = post_type_exists('product') ? get_posts([
+        'post_type' => 'product',
+        'post_status' => 'publish',
+        'posts_per_page' => 120,
+        'orderby' => 'title',
+        'order' => 'ASC',
+        'fields' => 'ids',
+    ]) : [];
+    ?>
+    <tr><th colspan="2"><h3><?php esc_html_e('Checkout order bump', 'kindertoys-core'); ?></h3></th></tr>
+    <tr>
+        <th scope="row"><?php esc_html_e('Enable checkout bump', 'kindertoys-core'); ?></th>
+        <td>
+            <label>
+                <input type="hidden" name="<?php echo esc_attr($option); ?>[checkout_bump_enabled]" value="0">
+                <input type="checkbox" name="<?php echo esc_attr($option); ?>[checkout_bump_enabled]" value="1" <?php checked((string) ($settings['checkout_bump_enabled'] ?? '1'), '1'); ?>>
+                <?php esc_html_e('Show a lightweight upsell inside checkout', 'kindertoys-core'); ?>
+            </label>
+        </td>
+    </tr>
+    <tr>
+        <th scope="row"><label for="checkout_bump_product_id"><?php esc_html_e('Bump product', 'kindertoys-core'); ?></label></th>
+        <td>
+            <select id="checkout_bump_product_id" name="<?php echo esc_attr($option); ?>[checkout_bump_product_id]" style="min-width:420px;">
+                <option value="0"><?php esc_html_e('Choose product', 'kindertoys-core'); ?></option>
+                <?php foreach ($products as $id) : ?>
+                    <option value="<?php echo esc_attr((string) $id); ?>" <?php selected($product_id, (int) $id); ?>><?php echo esc_html(get_the_title($id)); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </td>
+    </tr>
+    <?php kindertoys_core_text_field($settings, 'checkout_bump_title', __('Bump title', 'kindertoys-core')); ?>
+    <?php kindertoys_core_text_field($settings, 'checkout_bump_text', __('Bump text', 'kindertoys-core')); ?>
+    <?php kindertoys_core_text_field($settings, 'checkout_bump_discount_percent', __('Bump discount percent', 'kindertoys-core'), '0 means no discount.'); ?>
     <?php
 }
