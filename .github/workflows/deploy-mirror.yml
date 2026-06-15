@@ -1,0 +1,83 @@
+name: Mirror to deploy repos
+
+# Mirrors each sub-project from this monorepo into its own dedicated
+# repository so Git Updater (on the WordPress site) can pull updates.
+#
+#   themes/kindertoys        -> multidigitalltd/kindertoys
+#   plugins/kindertoys-core  -> multidigitalltd/kindertoys-core
+#
+# The plugin/theme Version header in the mirrored copy is set to
+# <major>.<minor>.<run_number>, where major/minor are read from the source
+# header and the run number is the patch. WordPress (via Git Updater) then
+# always sees a newer version and offers the update with no manual step.
+#
+# Required one-time setup:
+#   1. Create the two empty target repositories under the org.
+#   2. Add a repo/org secret named DEPLOY_TOKEN — a Personal Access Token
+#      (fine-grained or classic) with "Contents: write" on both targets.
+#   3. On the WordPress site install "Git Updater", add both repos, and
+#      (for private repos) set a GitHub token in Git Updater settings.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-mirror
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - source: themes/kindertoys
+            target: multidigitalltd/kindertoys
+            header: style.css
+          - source: plugins/kindertoys-core
+            target: multidigitalltd/kindertoys-core
+            header: kindertoys-core.php
+    steps:
+      - name: Checkout monorepo
+        uses: actions/checkout@v4
+
+      - name: Sync ${{ matrix.source }} to ${{ matrix.target }}
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DEPLOY_TOKEN:-}" ]; then
+            echo "::error::DEPLOY_TOKEN secret is missing. See deploy-mirror.yml setup notes."
+            exit 1
+          fi
+
+          work="$(mktemp -d)"
+          cp -a "${{ matrix.source }}/." "$work/"
+
+          # Derive the mirror version from the source Version header so the
+          # major/minor namespace is preserved (the run number is only the
+          # patch). The run number is monotonic, so each deploy is higher than
+          # the last and Git Updater keeps offering updates.
+          src_header="${{ matrix.source }}/${{ matrix.header }}"
+          base="$(grep -iE '^[[:space:]*]*Version:' "$src_header" | head -n1 | sed -E 's/.*Version:[[:space:]]*//; s/[[:space:]]*$//')"
+          major_minor="$(printf '%s' "$base" | cut -d. -f1,2)"
+          version="${major_minor:-0.1}.${GITHUB_RUN_NUMBER}"
+
+          # Write the computed version into the mirrored copy only.
+          header_file="$work/${{ matrix.header }}"
+          if [ -f "$header_file" ]; then
+            sed -i -E "s/^([[:space:]*]*Version:[[:space:]]*).*/\1${version}/" "$header_file"
+          fi
+
+          cd "$work"
+          git init -q
+          git checkout -q -b main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Sync ${version} from ${GITHUB_REPOSITORY}@${GITHUB_SHA:0:7}"
+          git push -f "https://x-access-token:${DEPLOY_TOKEN}@github.com/${{ matrix.target }}.git" main

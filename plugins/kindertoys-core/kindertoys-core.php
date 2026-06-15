@@ -6,7 +6,9 @@
  * Author: Multidigital
  * Text Domain: kindertoys-core
  * Requires PHP: 8.3
- * Update URI: false
+ * Update URI: https://github.com/multidigitalltd/kindertoys-core
+ * GitHub Plugin URI: multidigitalltd/kindertoys-core
+ * Primary Branch: main
  */
 
 declare(strict_types=1);
