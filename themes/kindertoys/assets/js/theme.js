@@ -415,6 +415,28 @@
     postCartUpdate(item.getAttribute("data-cart-item"), Number.parseInt(input.value || "0", 10));
   });
 
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-single-qty]");
+    const quantity = button?.closest(".quantity");
+    const input = quantity?.querySelector("input.qty");
+    if (!button || !input) {
+      return;
+    }
+
+    event.preventDefault();
+    const step = Number.parseFloat(input.getAttribute("step") || "1") || 1;
+    const min = Number.parseFloat(input.getAttribute("min") || "0") || 0;
+    const max = Number.parseFloat(input.getAttribute("max") || "");
+    const current = Number.parseFloat(input.value || "0") || 0;
+    let next = current + Number.parseFloat(button.getAttribute("data-single-qty") || "0") * step;
+    next = Math.max(min, next);
+    if (!Number.isNaN(max)) {
+      next = Math.min(max, next);
+    }
+    input.value = String(next);
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+
   document.addEventListener("change", async (event) => {
     const input = event.target.closest("[data-checkout-bump-toggle]");
     if (!input || !ajax.ajaxUrl || !ajax.nonce) {

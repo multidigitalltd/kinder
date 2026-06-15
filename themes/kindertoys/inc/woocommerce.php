@@ -25,6 +25,8 @@ function kindertoys_woocommerce_hooks(): void
     add_action('woocommerce_before_main_content', 'kindertoys_woo_wrapper_open', 10);
     add_action('woocommerce_after_main_content', 'kindertoys_woo_wrapper_close', 10);
     add_action('woocommerce_before_shop_loop', 'kindertoys_archive_filters', 18);
+    add_action('woocommerce_before_quantity_input_field', 'kindertoys_single_quantity_minus');
+    add_action('woocommerce_after_quantity_input_field', 'kindertoys_single_quantity_plus');
 
     remove_action('woocommerce_before_shop_loop_item', 'woocommerce_template_loop_product_link_open', 10);
     remove_action('woocommerce_after_shop_loop_item', 'woocommerce_template_loop_product_link_close', 5);
@@ -206,6 +208,51 @@ function kindertoys_product_card_actions(): void
     echo '<div class="kt-product-card__actions">';
     echo '<a ' . $attributes . '><span class="screen-reader-text">' . esc_html($product->add_to_cart_text()) . '</span>' . kindertoys_svg_icon('plus') . '</a>';
     echo '</div>';
+}
+
+function kindertoys_single_quantity_minus(): void
+{
+    if (! is_product()) {
+        return;
+    }
+
+    echo '<button class="kt-single-qty__button" type="button" data-single-qty="-1" aria-label="' . esc_attr__('הפחת כמות', 'kindertoys') . '">-</button>';
+}
+
+function kindertoys_single_quantity_plus(): void
+{
+    if (! is_product()) {
+        return;
+    }
+
+    echo '<button class="kt-single-qty__button" type="button" data-single-qty="1" aria-label="' . esc_attr__('הוסף כמות', 'kindertoys') . '">+</button>';
+}
+
+function kindertoys_cart_drawer_products(): void
+{
+    echo '<div class="kt-cart-drawer__scroll"><ul class="kt-cart-drawer__list">';
+    foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
+        $product = $cart_item['data'] ?? null;
+        if (! $product instanceof WC_Product || ! $product->exists()) {
+            continue;
+        }
+
+        $quantity = (int) $cart_item['quantity'];
+        echo '<li class="kt-cart-drawer__item" data-cart-item="' . esc_attr($cart_item_key) . '">';
+        echo '<a class="kt-cart-drawer__thumb" href="' . esc_url($product->get_permalink($cart_item)) . '">' . $product->get_image('woocommerce_thumbnail') . '</a>';
+        echo '<div class="kt-cart-drawer__body">';
+        echo '<a class="kt-cart-drawer__name" href="' . esc_url($product->get_permalink($cart_item)) . '">' . esc_html($product->get_name()) . '</a>';
+        echo '<span class="kt-cart-drawer__price">' . wp_kses_post(WC()->cart->get_product_price($product)) . '</span>';
+        echo '<div class="kt-qty-control" aria-label="' . esc_attr__('עדכון כמות', 'kindertoys') . '">';
+        echo '<button type="button" data-cart-qty="-1" aria-label="' . esc_attr__('הפחת כמות', 'kindertoys') . '">-</button>';
+        echo '<input type="number" min="0" step="1" value="' . esc_attr((string) $quantity) . '" aria-label="' . esc_attr__('כמות', 'kindertoys') . '" data-cart-qty-input>';
+        echo '<button type="button" data-cart-qty="1" aria-label="' . esc_attr__('הוסף כמות', 'kindertoys') . '">+</button>';
+        echo '</div>';
+        echo '</div>';
+        echo '<button class="kt-cart-drawer__remove" type="button" data-cart-remove aria-label="' . esc_attr__('הסר מוצר מהסל', 'kindertoys') . '">' . kindertoys_svg_icon('close') . '</button>';
+        echo '</li>';
+    }
+    echo '</ul></div>';
 }
 
 function kindertoys_wishlist_drawer(): void
@@ -471,32 +518,9 @@ function kindertoys_cart_drawer_items(): void
         return;
     }
 
-    echo '<ul class="kt-cart-drawer__list">';
-    foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
-        $product = $cart_item['data'] ?? null;
-        if (! $product instanceof WC_Product || ! $product->exists()) {
-            continue;
-        }
-
-        $quantity = (int) $cart_item['quantity'];
-        echo '<li class="kt-cart-drawer__item" data-cart-item="' . esc_attr($cart_item_key) . '">';
-        echo '<a class="kt-cart-drawer__thumb" href="' . esc_url($product->get_permalink($cart_item)) . '">' . $product->get_image('woocommerce_thumbnail') . '</a>';
-        echo '<div class="kt-cart-drawer__body">';
-        echo '<a class="kt-cart-drawer__name" href="' . esc_url($product->get_permalink($cart_item)) . '">' . esc_html($product->get_name()) . '</a>';
-        echo '<span class="kt-cart-drawer__price">' . wp_kses_post(WC()->cart->get_product_price($product)) . '</span>';
-        echo '<div class="kt-qty-control" aria-label="' . esc_attr__('עדכון כמות', 'kindertoys') . '">';
-        echo '<button type="button" data-cart-qty="-1" aria-label="' . esc_attr__('הפחת כמות', 'kindertoys') . '">-</button>';
-        echo '<input type="number" min="0" step="1" value="' . esc_attr((string) $quantity) . '" aria-label="' . esc_attr__('כמות', 'kindertoys') . '" data-cart-qty-input>';
-        echo '<button type="button" data-cart-qty="1" aria-label="' . esc_attr__('הוסף כמות', 'kindertoys') . '">+</button>';
-        echo '</div>';
-        echo '</div>';
-        echo '<button class="kt-cart-drawer__remove" type="button" data-cart-remove aria-label="' . esc_attr__('הסר מוצר מהסל', 'kindertoys') . '">' . kindertoys_svg_icon('close') . '</button>';
-        echo '</li>';
-    }
-    echo '</ul>';
-
-    echo '<footer class="kt-cart-drawer__foot">';
     kindertoys_cart_free_shipping_progress();
+    kindertoys_cart_drawer_products();
+    echo '<footer class="kt-cart-drawer__foot">';
     echo '<div><span>' . esc_html__('סה"כ ביניים', 'kindertoys') . '</span><strong>' . wp_kses_post(WC()->cart->get_cart_subtotal()) . '</strong></div>';
     echo '<a class="kt-button" href="' . esc_url(wc_get_checkout_url()) . '">' . esc_html__('לתשלום', 'kindertoys') . '</a>';
     echo '<a class="kt-button kt-button--light" href="' . esc_url(wc_get_cart_url()) . '">' . esc_html__('צפייה ועריכה בסל', 'kindertoys') . '</a>';

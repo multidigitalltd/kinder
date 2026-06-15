@@ -177,6 +177,16 @@ function kindertoys_core_register_settings(): void
     ]);
 }
 
+add_action('admin_enqueue_scripts', 'kindertoys_core_admin_assets');
+function kindertoys_core_admin_assets(string $hook): void
+{
+    if ('toplevel_page_kindertoys-settings' !== $hook) {
+        return;
+    }
+
+    wp_enqueue_media();
+}
+
 function kindertoys_core_sanitize_settings(mixed $input): array
 {
     $input = is_array($input) ? $input : [];
@@ -337,6 +347,39 @@ function kindertoys_core_render_settings_page(): void
             <?php submit_button(); ?>
         </form>
     </div>
+    <script>
+        (() => {
+            document.querySelectorAll('[data-kt-filter-select]').forEach((input) => {
+                const select = document.getElementById(input.getAttribute('data-kt-filter-select'));
+                const options = select ? Array.from(select.options) : [];
+                input.addEventListener('input', () => {
+                    const term = input.value.trim().toLowerCase();
+                    options.forEach((option) => {
+                        option.hidden = term !== '' && !option.text.toLowerCase().includes(term);
+                    });
+                });
+            });
+
+            document.querySelectorAll('[data-kt-media-target]').forEach((button) => {
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (!window.wp || !wp.media) {
+                        return;
+                    }
+                    const input = document.getElementById(button.getAttribute('data-kt-media-target'));
+                    const frame = wp.media({ title: button.textContent.trim(), multiple: false, library: { type: 'image' } });
+                    frame.on('select', () => {
+                        const attachment = frame.state().get('selection').first()?.toJSON();
+                        if (input && attachment?.url) {
+                            input.value = attachment.url;
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    });
+                    frame.open();
+                });
+            });
+        })();
+    </script>
     <?php
 }
 
@@ -348,6 +391,9 @@ function kindertoys_core_text_field(array $settings, string $key, string $label,
         <th scope="row"><label for="<?php echo esc_attr($key); ?>"><?php echo esc_html($label); ?></label></th>
         <td>
             <input class="regular-text" type="text" id="<?php echo esc_attr($key); ?>" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr((string) ($settings[$key] ?? '')); ?>">
+            <?php if (str_ends_with($key, '_image') || 'hero_image_url' === $key) : ?>
+                <button class="button" type="button" data-kt-media-target="<?php echo esc_attr($key); ?>"><?php esc_html_e('Upload image', 'kindertoys-core'); ?></button>
+            <?php endif; ?>
             <?php if ('' !== $description) : ?>
                 <p class="description"><?php echo esc_html($description); ?></p>
             <?php endif; ?>
@@ -419,6 +465,7 @@ function kindertoys_core_featured_products_fields(array $settings): void
                     <?php endforeach; ?>
                 <?php endif; ?>
             </select>
+            <p><input type="search" class="regular-text" data-kt-filter-select="featured_category_ids" placeholder="<?php esc_attr_e('Search categories', 'kindertoys-core'); ?>"></p>
             <p class="description"><?php esc_html_e('Used when source is Selected categories. Hold Ctrl/Cmd to choose more than one.', 'kindertoys-core'); ?></p>
         </td>
     </tr>
@@ -430,6 +477,7 @@ function kindertoys_core_featured_products_fields(array $settings): void
                     <option value="<?php echo esc_attr((string) $product_id); ?>" <?php selected(in_array((int) $product_id, $selected_products, true)); ?>><?php echo esc_html(get_the_title($product_id)); ?></option>
                 <?php endforeach; ?>
             </select>
+            <p><input type="search" class="regular-text" data-kt-filter-select="featured_product_ids" placeholder="<?php esc_attr_e('Search products', 'kindertoys-core'); ?>"></p>
             <p class="description"><?php esc_html_e('Used when source is Selected products. Hold Ctrl/Cmd to choose more than one.', 'kindertoys-core'); ?></p>
         </td>
     </tr>
@@ -469,6 +517,7 @@ function kindertoys_core_checkout_bump_fields(array $settings): void
                     <option value="<?php echo esc_attr((string) $id); ?>" <?php selected($product_id, (int) $id); ?>><?php echo esc_html(get_the_title($id)); ?></option>
                 <?php endforeach; ?>
             </select>
+            <p><input type="search" class="regular-text" data-kt-filter-select="checkout_bump_product_id" placeholder="<?php esc_attr_e('Search products', 'kindertoys-core'); ?>"></p>
         </td>
     </tr>
     <?php kindertoys_core_text_field($settings, 'checkout_bump_title', __('Bump title', 'kindertoys-core')); ?>
