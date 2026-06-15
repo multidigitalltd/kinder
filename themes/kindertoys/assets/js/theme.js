@@ -418,6 +418,7 @@
   document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-save-cart]");
     const resultBox = document.querySelector("[data-save-cart-result]");
+    const emailInput = document.querySelector("[data-save-cart-email]");
     if (!button || !ajax.ajaxUrl || !ajax.nonce) {
       return;
     }
@@ -428,6 +429,9 @@
       action: "kindertoys_save_cart",
       nonce: ajax.nonce,
     });
+    if (emailInput?.value) {
+      body.set("email", emailInput.value.trim());
+    }
 
     try {
       const response = await fetch(ajax.ajaxUrl, {

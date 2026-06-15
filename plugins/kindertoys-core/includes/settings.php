@@ -69,6 +69,10 @@ function kindertoys_core_default_settings(): array
         'schema_return_days' => '14',
         'saved_cart_webhook_url' => '',
         'saved_cart_email_to' => '',
+        'saved_cart_customer_subject' => 'הסל שלך נשמר ב-{site}',
+        'saved_cart_customer_body' => "היי,\n\nשמנו לך בצד את הסל. אפשר לחזור אליו מכל מכשיר דרך הקישור:\n{url}\n\nהקישור תקף ל-30 יום.",
+        'waitlist_email_subject' => 'המוצר {product} חזר למלאי',
+        'waitlist_email_body' => "היי {name},\n\nהמוצר {product} חזר למלאי ואפשר להשלים הזמנה כאן:\n{url}",
         'checkout_bump_enabled' => '1',
         'checkout_bump_product_id' => '0',
         'checkout_bump_title' => 'רוצים להוסיף עוד משהו קטן?',
@@ -239,7 +243,7 @@ function kindertoys_core_sanitize_settings(mixed $input): array
             continue;
         }
 
-        if (in_array($key, ['product_badge_category_rules'], true)) {
+        if (in_array($key, ['product_badge_category_rules', 'saved_cart_customer_body', 'waitlist_email_body'], true)) {
             $output[$key] = sanitize_textarea_field((string) $value);
             continue;
         }
@@ -343,6 +347,10 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'schema_return_days', __('Schema return days', 'kindertoys-core'), 'Used for Product merchant listing return policy.'); ?>
                 <?php kindertoys_core_text_field($settings, 'saved_cart_webhook_url', __('Saved cart webhook URL', 'kindertoys-core'), 'Optional. Called when a customer saves a cart.'); ?>
                 <?php kindertoys_core_text_field($settings, 'saved_cart_email_to', __('Saved cart email recipient', 'kindertoys-core'), 'Optional. Leave empty to use the site admin email.'); ?>
+                <?php kindertoys_core_text_field($settings, 'saved_cart_customer_subject', __('Saved cart customer email subject', 'kindertoys-core'), 'Placeholders: {site}, {url}'); ?>
+                <?php kindertoys_core_textarea_field($settings, 'saved_cart_customer_body', __('Saved cart customer email body', 'kindertoys-core'), 'Placeholders: {site}, {url}'); ?>
+                <?php kindertoys_core_text_field($settings, 'waitlist_email_subject', __('Back-in-stock email subject', 'kindertoys-core'), 'Placeholders: {name}, {product}, {url}, {site}'); ?>
+                <?php kindertoys_core_textarea_field($settings, 'waitlist_email_body', __('Back-in-stock email body', 'kindertoys-core'), 'Placeholders: {name}, {product}, {url}, {site}'); ?>
                 <?php kindertoys_core_checkout_bump_fields($settings); ?>
             </table>
             </section>

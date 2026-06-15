@@ -928,6 +928,25 @@
   cursor: pointer;
 }
 
+.kt-save-cart-email {
+  display: grid;
+  gap: .35rem;
+  color: var(--kt-navy);
+  font-size: .86rem;
+  font-weight: 900;
+}
+
+.kt-save-cart-email input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 .75rem;
+  border: 1px solid rgba(24, 51, 109, .14);
+  border-radius: 12px;
+  background: var(--kt-white);
+  color: var(--kt-navy);
+  font-weight: 700;
+}
+
 .kt-save-cart-button:disabled {
   opacity: .58;
   cursor: progress;

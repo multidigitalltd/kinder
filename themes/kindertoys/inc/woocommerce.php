@@ -28,6 +28,7 @@ function kindertoys_woocommerce_hooks(): void
     add_action('woocommerce_before_main_content', 'kindertoys_woo_wrapper_open', 10);
     add_action('woocommerce_before_main_content', 'kindertoys_product_breadcrumb', 11);
     add_action('woocommerce_after_main_content', 'kindertoys_woo_wrapper_close', 10);
+    add_action('woocommerce_before_single_product', 'kindertoys_product_breadcrumb', 1);
     add_action('woocommerce_before_shop_loop', 'kindertoys_archive_filters', 18);
     add_action('woocommerce_after_shop_loop', 'kindertoys_category_bottom_description', 30);
     add_action('woocommerce_before_quantity_input_field', 'kindertoys_single_quantity_minus');
@@ -94,9 +95,17 @@ function kindertoys_woo_wrapper_close(): void
 
 function kindertoys_product_breadcrumb(): void
 {
+    static $rendered = false;
+
+    if ($rendered) {
+        return;
+    }
+
     if (! is_product() || ! function_exists('woocommerce_breadcrumb')) {
         return;
     }
+
+    $rendered = true;
 
     woocommerce_breadcrumb([
         'delimiter' => '<span class="kt-breadcrumb__sep" aria-hidden="true">/</span>',
@@ -471,6 +480,10 @@ function kindertoys_single_out_of_stock_panel(): void
                 <input type="email" name="email" autocomplete="email" placeholder="<?php esc_attr_e('אימייל לעדכון', 'kindertoys'); ?>" required>
             </label>
             <button class="kt-button" type="submit"><?php esc_html_e('עדכנו אותי כשחוזר', 'kindertoys'); ?></button>
+            <label class="kt-waitlist__terms">
+                <input type="checkbox" name="terms" value="1" required>
+                <span><?php esc_html_e('אני מאשר/ת לקבל עדכון במייל כשהמוצר חוזר למלאי.', 'kindertoys'); ?></span>
+            </label>
         </form>
     </section>
     <?php
@@ -712,6 +725,7 @@ function kindertoys_cart_drawer_items(): void
     echo '<footer class="kt-cart-drawer__foot">';
     echo '<div><span>' . esc_html__('סה"כ ביניים', 'kindertoys') . '</span><strong>' . wp_kses_post(WC()->cart->get_cart_subtotal()) . '</strong></div>';
     echo '<a class="kt-button" href="' . esc_url(wc_get_checkout_url()) . '">' . esc_html__('לתשלום', 'kindertoys') . '</a>';
+    echo '<label class="kt-save-cart-email"><span>' . esc_html__('שליחת קישור הסל לאימייל', 'kindertoys') . '</span><input type="email" data-save-cart-email autocomplete="email" placeholder="' . esc_attr__('your@email.com', 'kindertoys') . '"></label>';
     echo '<button class="kt-save-cart-button" type="button" data-save-cart>' . esc_html__('שמירת הסל להמשך', 'kindertoys') . '</button>';
     echo '<div class="kt-save-cart-result" data-save-cart-result hidden></div>';
     echo '</footer>';
@@ -802,12 +816,14 @@ function kindertoys_ajax_save_cart(): void
 
     $token = wp_generate_password(24, false, false);
     $items = kindertoys_saved_cart_payload();
+    $customer_email = isset($_POST['email']) ? sanitize_email(wp_unslash((string) $_POST['email'])) : '';
     $payload = [
         'token' => $token,
         'items' => $items,
         'created_at' => time(),
         'cart_total' => wp_strip_all_tags(WC()->cart->get_cart_total()),
         'cart_url' => add_query_arg('kt_restore_cart', $token, wc_get_cart_url()),
+        'customer_email' => $customer_email,
     ];
 
     set_transient('kindertoys_saved_cart_' . $token, $payload, 30 * DAY_IN_SECONDS);
@@ -822,6 +838,17 @@ function kindertoys_ajax_save_cart(): void
             sprintf(__('סל שמור חדש באתר %s', 'kindertoys'), wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES)),
             sprintf("%s\n\n%s", __('נוצר סל שמור חדש. קישור לשחזור:', 'kindertoys'), $payload['cart_url'])
         );
+    }
+
+    if (is_email($customer_email)) {
+        $site = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
+        $replacements = [
+            '{site}' => $site,
+            '{url}' => $payload['cart_url'],
+        ];
+        $subject = strtr((string) kindertoys_setting('saved_cart_customer_subject', 'הסל שלך נשמר ב-{site}'), $replacements);
+        $message = strtr((string) kindertoys_setting('saved_cart_customer_body', "היי,\n\nשמנו לך בצד את הסל. אפשר לחזור אליו מכל מכשיר דרך הקישור:\n{url}\n\nהקישור תקף ל-30 יום."), $replacements);
+        wp_mail($customer_email, $subject, $message);
     }
 
     $webhook = (string) kindertoys_setting('saved_cart_webhook_url', '');

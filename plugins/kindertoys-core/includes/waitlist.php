@@ -60,9 +60,14 @@ function kindertoys_core_ajax_waitlist_signup(): void
     $product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
     $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash((string) $_POST['name'])) : '';
     $email = isset($_POST['email']) ? sanitize_email(wp_unslash((string) $_POST['email'])) : '';
+    $terms = isset($_POST['terms']) && '1' === (string) wp_unslash($_POST['terms']);
 
     if ($product_id <= 0 || '' === $name || ! is_email($email)) {
         wp_send_json_error(['message' => __('נא למלא שם ואימייל תקין.', 'kindertoys-core')], 400);
+    }
+
+    if (! $terms) {
+        wp_send_json_error(['message' => __('צריך לאשר קבלת עדכון במייל כדי להירשם.', 'kindertoys-core')], 400);
     }
 
     if (! kindertoys_core_waitlist_add($product_id, $name, $email)) {
@@ -87,7 +92,9 @@ function kindertoys_core_notify_waitlist_on_stock(int $product_id, string $stock
 
     $product_name = $product->get_name();
     $product_url = get_permalink($product_id);
-    $subject = sprintf(__('המוצר %s חזר למלאי', 'kindertoys-core'), $product_name);
+    $site = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
+    $subject_template = (string) kindertoys_core_get_setting('waitlist_email_subject', 'המוצר {product} חזר למלאי');
+    $body_template = (string) kindertoys_core_get_setting('waitlist_email_body', "היי {name},\n\nהמוצר {product} חזר למלאי ואפשר להשלים הזמנה כאן:\n{url}");
 
     foreach ($items as $email => $item) {
         if (! empty($item['notified_at']) || ! is_email((string) $email)) {
@@ -95,12 +102,14 @@ function kindertoys_core_notify_waitlist_on_stock(int $product_id, string $stock
         }
 
         $name = trim((string) ($item['name'] ?? ''));
-        $message = sprintf(
-            "%s\n\n%s\n%s",
-            '' !== $name ? sprintf(__('היי %s,', 'kindertoys-core'), $name) : __('היי,', 'kindertoys-core'),
-            sprintf(__('המוצר %s חזר למלאי ואפשר להשלים הזמנה כאן:', 'kindertoys-core'), $product_name),
-            $product_url
-        );
+        $replacements = [
+            '{name}' => '' !== $name ? $name : __('לקוח/ה', 'kindertoys-core'),
+            '{product}' => $product_name,
+            '{url}' => $product_url,
+            '{site}' => $site,
+        ];
+        $subject = strtr($subject_template, $replacements);
+        $message = strtr($body_template, $replacements);
 
         wp_mail((string) $email, $subject, $message);
         $items[$email]['notified_at'] = time();
