@@ -8,6 +8,30 @@
   backdrop-filter: blur(12px);
 }
 
+.kt-toast {
+  position: fixed;
+  z-index: 120;
+  right: 50%;
+  bottom: 1.4rem;
+  padding: .7rem 1rem;
+  border: 1px solid rgba(24, 51, 109, .1);
+  border-radius: 999px;
+  background: var(--kt-navy);
+  color: var(--kt-white);
+  box-shadow: 0 18px 44px rgba(15, 35, 70, .18);
+  font-size: .9rem;
+  font-weight: 800;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(50%, .65rem);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.kt-toast.is-visible {
+  opacity: 1;
+  transform: translate(50%, 0);
+}
+
 :root {
   --kt-sticky-offset: 10.5rem;
 }
@@ -878,7 +902,7 @@
 }
 
 .kt-hero {
-  padding-block: clamp(1.5rem, 2.4vw, 2.4rem) clamp(1.25rem, 2.5vw, 2.2rem);
+  padding-block: clamp(.9rem, 1.8vw, 1.8rem) clamp(1rem, 2vw, 1.8rem);
 }
 
 .kt-hero__grid {
@@ -888,7 +912,7 @@
   gap: clamp(1rem, 4vw, 3rem);
   align-items: center;
   overflow: hidden;
-  min-height: clamp(22rem, 39vw, 28rem);
+  min-height: clamp(20rem, 35vw, 25.5rem);
   border: 1px solid rgba(24, 51, 109, .1);
   border-radius: 32px;
   background:
@@ -896,7 +920,7 @@
     radial-gradient(circle at 20% 95%, rgba(217, 39, 50, .14), transparent 28rem),
     linear-gradient(225deg, var(--kt-blue-soft), #fff 50%, rgba(253, 232, 234, .65));
   box-shadow: var(--kt-shadow);
-  padding: clamp(1rem, 2.4vw, 2rem);
+  padding: clamp(.85rem, 2vw, 1.7rem);
 }
 
 .kt-hero__copy {
@@ -1017,7 +1041,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  min-height: clamp(18rem, 34vw, 24rem);
+  min-height: clamp(17rem, 31vw, 22.5rem);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -1025,9 +1049,9 @@
 }
 
 .kt-hero__media img {
-  width: min(116%, 41rem);
-  margin-top: -3.2rem;
-  margin-bottom: -1.2rem;
+  width: min(118%, 40rem);
+  margin-top: -4.6rem;
+  margin-bottom: -1.6rem;
   aspect-ratio: 1;
   object-fit: contain;
   filter: drop-shadow(0 18px 22px rgba(27, 42, 82, .18));
@@ -1535,6 +1559,95 @@
   color: rgba(255, 255, 255, .7);
 }
 
+.kt-not-found {
+  padding-block: 2rem 4rem;
+}
+
+.kt-404 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, .75fr);
+  gap: clamp(1rem, 4vw, 3rem);
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(24, 51, 109, .1);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 82% 8%, rgba(38, 117, 217, .18), transparent 25rem),
+    radial-gradient(circle at 15% 90%, rgba(217, 39, 50, .14), transparent 26rem),
+    linear-gradient(225deg, var(--kt-blue-soft), #fff 55%, rgba(253, 232, 234, .65));
+  box-shadow: var(--kt-shadow);
+  padding: clamp(1.2rem, 4vw, 3rem);
+}
+
+.kt-404__copy {
+  display: grid;
+  gap: .85rem;
+}
+
+.kt-404 h1 {
+  margin: 0;
+  color: var(--kt-red);
+  font-size: clamp(4rem, 13vw, 9rem);
+  font-weight: 900;
+  line-height: .85;
+}
+
+.kt-404 h2 {
+  margin: 0;
+  color: var(--kt-navy);
+  font-size: clamp(1.7rem, 4vw, 3.4rem);
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.kt-404 p {
+  max-width: 38rem;
+  margin: 0;
+  color: var(--kt-muted);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.kt-404__search {
+  display: flex;
+  gap: .55rem;
+  align-items: center;
+  max-width: 38rem;
+  margin-top: .45rem;
+  padding: .35rem;
+  border: 2px solid rgba(24, 51, 109, .1);
+  border-radius: 999px;
+  background: var(--kt-white);
+  box-shadow: 0 8px 22px rgba(15, 35, 70, .08);
+}
+
+.kt-404__search input[type="search"] {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  padding-inline: .9rem;
+  background: transparent;
+  color: var(--kt-navy);
+  font-weight: 800;
+}
+
+.kt-404__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem;
+}
+
+.kt-404__media {
+  display: grid;
+  place-items: end center;
+}
+
+.kt-404__media img {
+  width: min(120%, 27rem);
+  filter: drop-shadow(0 18px 22px rgba(27, 42, 82, .18));
+}
+
 @media (max-width: 900px) {
   .kt-menu-open {
     overflow: hidden;
@@ -1676,6 +1789,7 @@
   }
 
   .kt-hero__grid,
+  .kt-404,
   .kt-footer__grid {
     grid-template-columns: 1fr;
   }
@@ -1686,6 +1800,20 @@
   .kt-kindy-zone,
   .kt-store-info {
     grid-template-columns: 1fr;
+  }
+
+  .kt-404__media {
+    order: -1;
+  }
+
+  .kt-404__media img {
+    width: min(76vw, 18rem);
+  }
+
+  .kt-404__search {
+    border-radius: 18px;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .kt-promo-grid {

@@ -47,7 +47,7 @@ function kindertoys_core_categories_shortcode(array $atts): string
                 </span>
                 <span class="kt-category-card__body">
                     <strong><?php echo esc_html($term->name); ?></strong>
-                    <span><?php echo esc_html(sprintf(_n('%s product', '%s products', (int) $term->count, 'kindertoys-core'), number_format_i18n((int) $term->count))); ?></span>
+                    <span><?php echo esc_html(sprintf(_n('%s מוצר', '%s מוצרים', (int) $term->count, 'kindertoys-core'), number_format_i18n((int) $term->count))); ?></span>
                 </span>
             </a>
         <?php endforeach; ?>

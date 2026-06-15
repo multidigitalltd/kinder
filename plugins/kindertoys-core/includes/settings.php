@@ -59,6 +59,10 @@ function kindertoys_core_default_settings(): array
         'products_eyebrow' => 'מוצרים חמים',
         'products_title' => 'הנבחרים של קינדי',
         'featured_products_shortcode' => '[products limit="10" columns="5" orderby="popularity" stock_status="instock" visibility="visible"]',
+        'featured_products_mode' => 'popular',
+        'featured_products_limit' => '10',
+        'featured_category_ids' => [],
+        'featured_product_ids' => [],
         'age_eyebrow' => 'בוחרים לפי גיל',
         'age_title' => 'למצוא את המתנה המושלמת',
         'brands_eyebrow' => 'מותגים אהובים',
@@ -168,6 +172,24 @@ function kindertoys_core_sanitize_settings(mixed $input): array
     foreach ($defaults as $key => $default) {
         $value = $input[$key] ?? $default;
 
+        if (in_array($key, ['featured_category_ids', 'featured_product_ids'], true)) {
+            $values = is_array($value) ? $value : [];
+            $output[$key] = array_values(array_filter(array_map('absint', $values)));
+            continue;
+        }
+
+        if ('featured_products_limit' === $key) {
+            $output[$key] = (string) min(20, max(1, absint($value)));
+            continue;
+        }
+
+        if ('featured_products_mode' === $key) {
+            $allowed = ['popular', 'new', 'sale', 'category', 'manual'];
+            $mode = sanitize_key((string) $value);
+            $output[$key] = in_array($mode, $allowed, true) ? $mode : 'popular';
+            continue;
+        }
+
         if (str_ends_with($key, '_url') || str_ends_with($key, '_image')) {
             $output[$key] = esc_url_raw((string) $value);
             continue;
@@ -243,7 +265,7 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'categories_title', __('Categories title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'products_eyebrow', __('Products eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'products_title', __('Products title', 'kindertoys-core')); ?>
-                <?php kindertoys_core_text_field($settings, 'featured_products_shortcode', __('Featured products shortcode', 'kindertoys-core'), 'Examples: [products ids="12,34,56" columns="5"] or [products category="lego" limit="10" columns="5"]'); ?>
+                <?php kindertoys_core_featured_products_fields($settings); ?>
                 <?php kindertoys_core_text_field($settings, 'age_eyebrow', __('Age section eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'age_title', __('Age section title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'brands_eyebrow', __('Brands eyebrow', 'kindertoys-core')); ?>
@@ -281,6 +303,70 @@ function kindertoys_core_text_field(array $settings, string $key, string $label,
             <?php if ('' !== $description) : ?>
                 <p class="description"><?php echo esc_html($description); ?></p>
             <?php endif; ?>
+        </td>
+    </tr>
+    <?php
+}
+
+function kindertoys_core_featured_products_fields(array $settings): void
+{
+    $option = KINDERTOYS_CORE_SETTINGS_OPTION;
+    $mode = (string) ($settings['featured_products_mode'] ?? 'popular');
+    $selected_categories = array_map('absint', (array) ($settings['featured_category_ids'] ?? []));
+    $selected_products = array_map('absint', (array) ($settings['featured_product_ids'] ?? []));
+    $categories = taxonomy_exists('product_cat') ? get_terms([
+        'taxonomy' => 'product_cat',
+        'hide_empty' => false,
+        'number' => 100,
+    ]) : [];
+    $products = post_type_exists('product') ? get_posts([
+        'post_type' => 'product',
+        'post_status' => 'publish',
+        'posts_per_page' => 120,
+        'orderby' => 'title',
+        'order' => 'ASC',
+        'fields' => 'ids',
+    ]) : [];
+    ?>
+    <tr>
+        <th scope="row"><label for="featured_products_mode"><?php esc_html_e('Featured products source', 'kindertoys-core'); ?></label></th>
+        <td>
+            <select id="featured_products_mode" name="<?php echo esc_attr($option); ?>[featured_products_mode]">
+                <option value="popular" <?php selected($mode, 'popular'); ?>><?php esc_html_e('Popular / best sellers', 'kindertoys-core'); ?></option>
+                <option value="new" <?php selected($mode, 'new'); ?>><?php esc_html_e('Newest products', 'kindertoys-core'); ?></option>
+                <option value="sale" <?php selected($mode, 'sale'); ?>><?php esc_html_e('Sale products', 'kindertoys-core'); ?></option>
+                <option value="category" <?php selected($mode, 'category'); ?>><?php esc_html_e('Selected categories', 'kindertoys-core'); ?></option>
+                <option value="manual" <?php selected($mode, 'manual'); ?>><?php esc_html_e('Selected products', 'kindertoys-core'); ?></option>
+            </select>
+            <p class="description"><?php esc_html_e('Choose what appears in the Kinder favorites section without writing shortcodes.', 'kindertoys-core'); ?></p>
+        </td>
+    </tr>
+    <tr>
+        <th scope="row"><label for="featured_products_limit"><?php esc_html_e('Number of products', 'kindertoys-core'); ?></label></th>
+        <td><input type="number" min="1" max="20" id="featured_products_limit" name="<?php echo esc_attr($option); ?>[featured_products_limit]" value="<?php echo esc_attr((string) ($settings['featured_products_limit'] ?? '10')); ?>"></td>
+    </tr>
+    <tr>
+        <th scope="row"><label for="featured_category_ids"><?php esc_html_e('Featured categories', 'kindertoys-core'); ?></label></th>
+        <td>
+            <select id="featured_category_ids" name="<?php echo esc_attr($option); ?>[featured_category_ids][]" multiple size="8" style="min-width:320px;">
+                <?php if (! is_wp_error($categories)) : ?>
+                    <?php foreach ($categories as $category) : ?>
+                        <option value="<?php echo esc_attr((string) $category->term_id); ?>" <?php selected(in_array((int) $category->term_id, $selected_categories, true)); ?>><?php echo esc_html($category->name); ?></option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+            <p class="description"><?php esc_html_e('Used when source is Selected categories. Hold Ctrl/Cmd to choose more than one.', 'kindertoys-core'); ?></p>
+        </td>
+    </tr>
+    <tr>
+        <th scope="row"><label for="featured_product_ids"><?php esc_html_e('Featured products', 'kindertoys-core'); ?></label></th>
+        <td>
+            <select id="featured_product_ids" name="<?php echo esc_attr($option); ?>[featured_product_ids][]" multiple size="10" style="min-width:420px;">
+                <?php foreach ($products as $product_id) : ?>
+                    <option value="<?php echo esc_attr((string) $product_id); ?>" <?php selected(in_array((int) $product_id, $selected_products, true)); ?>><?php echo esc_html(get_the_title($product_id)); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <p class="description"><?php esc_html_e('Used when source is Selected products. Hold Ctrl/Cmd to choose more than one.', 'kindertoys-core'); ?></p>
         </td>
     </tr>
     <?php

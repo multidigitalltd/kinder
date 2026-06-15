@@ -94,7 +94,7 @@ if ('' !== $hero_image) {
                 <p class="kt-eyebrow"><?php echo esc_html((string) kindertoys_setting('products_eyebrow', 'מוצרים חמים')); ?></p>
                 <h2><?php echo esc_html((string) kindertoys_setting('products_title', 'הנבחרים של קינדי')); ?></h2>
             </div>
-            <?php echo do_shortcode((string) kindertoys_setting('featured_products_shortcode', '[products limit="10" columns="5" orderby="popularity" stock_status="instock" visibility="visible"]')); ?>
+            <?php echo do_shortcode(kindertoys_featured_products_shortcode()); ?>
         </section>
     <?php endif; ?>
 

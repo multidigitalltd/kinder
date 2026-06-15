@@ -49,6 +49,8 @@ function kindertoys_woocommerce_hooks(): void
 
     add_action('wp_ajax_kindertoys_update_cart_item', 'kindertoys_ajax_update_cart_item');
     add_action('wp_ajax_nopriv_kindertoys_update_cart_item', 'kindertoys_ajax_update_cart_item');
+    add_action('wp_ajax_kindertoys_cart_snapshot', 'kindertoys_ajax_cart_snapshot');
+    add_action('wp_ajax_nopriv_kindertoys_cart_snapshot', 'kindertoys_ajax_cart_snapshot');
     add_action('wp_ajax_kindertoys_search_products', 'kindertoys_ajax_search_products');
     add_action('wp_ajax_nopriv_kindertoys_search_products', 'kindertoys_ajax_search_products');
     add_action('wp_ajax_kindertoys_wishlist_products', 'kindertoys_ajax_wishlist_products');
@@ -397,6 +399,25 @@ function kindertoys_ajax_update_cart_item(): void
 
     WC()->cart->set_quantity($cart_item_key, $quantity, true);
     WC()->cart->calculate_totals();
+
+    ob_start();
+    kindertoys_cart_drawer_items();
+    $items = ob_get_clean();
+
+    wp_send_json_success([
+        'items' => $items,
+        'count' => kindertoys_cart_count(),
+        'total' => kindertoys_cart_total(),
+    ]);
+}
+
+function kindertoys_ajax_cart_snapshot(): void
+{
+    check_ajax_referer('kindertoys_ajax', 'nonce');
+
+    if (! function_exists('WC') || ! WC()->cart) {
+        wp_send_json_error(['message' => __('WooCommerce לא זמין כרגע.', 'kindertoys')], 400);
+    }
 
     ob_start();
     kindertoys_cart_drawer_items();

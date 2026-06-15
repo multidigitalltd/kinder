@@ -40,6 +40,44 @@ function kindertoys_setting_url(string $key, string $fallback = '#'): string
     return esc_url(home_url('/' . ltrim($value, '/')));
 }
 
+function kindertoys_featured_products_shortcode(): string
+{
+    $limit = min(20, max(1, absint(kindertoys_setting('featured_products_limit', '10'))));
+    $base = ' limit="' . esc_attr((string) $limit) . '" columns="5" stock_status="instock" visibility="visible"';
+    $mode = (string) kindertoys_setting('featured_products_mode', 'popular');
+
+    if ('manual' === $mode) {
+        $ids = array_values(array_filter(array_map('absint', (array) kindertoys_setting('featured_product_ids', []))));
+        if (! empty($ids)) {
+            return '[products ids="' . esc_attr(implode(',', $ids)) . '" columns="5" stock_status="instock" visibility="visible"]';
+        }
+    }
+
+    if ('category' === $mode) {
+        $category_ids = array_values(array_filter(array_map('absint', (array) kindertoys_setting('featured_category_ids', []))));
+        $slugs = [];
+        foreach ($category_ids as $category_id) {
+            $term = get_term($category_id, 'product_cat');
+            if ($term instanceof WP_Term) {
+                $slugs[] = $term->slug;
+            }
+        }
+        if (! empty($slugs)) {
+            return '[products' . $base . ' category="' . esc_attr(implode(',', $slugs)) . '"]';
+        }
+    }
+
+    if ('new' === $mode) {
+        return '[products' . $base . ' orderby="date" order="DESC"]';
+    }
+
+    if ('sale' === $mode) {
+        return '[sale_products' . $base . ']';
+    }
+
+    return '[products' . $base . ' orderby="popularity"]';
+}
+
 function kindertoys_phone_href(): string
 {
     if (function_exists('kindertoys_core_tel_href')) {

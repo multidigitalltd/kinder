@@ -162,7 +162,9 @@
     event.preventDefault();
     const id = String(toggle.getAttribute("data-product-id") || "");
     const ids = getWishlist();
-    setWishlist(ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]);
+    const isRemoving = ids.includes(id);
+    setWishlist(isRemoving ? ids.filter((item) => item !== id) : [...ids, id]);
+    showToast(isRemoving ? "הוסר מהמועדפים" : "נוסף למועדפים");
   });
 
   document.addEventListener("click", (event) => {
@@ -173,11 +175,33 @@
     }
     const id = String(item.getAttribute("data-product-id") || "");
     setWishlist(getWishlist().filter((itemId) => itemId !== id));
+    showToast("הוסר מהמועדפים");
     loadWishlist();
   });
 
   const setCartBusy = (isBusy) => {
     cartDrawer?.classList.toggle("is-busy", isBusy);
+  };
+
+  const showToast = (message) => {
+    if (!message) {
+      return;
+    }
+
+    let toast = document.querySelector("[data-kt-toast]");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.className = "kt-toast";
+      toast.setAttribute("role", "status");
+      toast.setAttribute("aria-live", "polite");
+      toast.setAttribute("data-kt-toast", "");
+      document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.classList.add("is-visible");
+    window.clearTimeout(showToast.timer);
+    showToast.timer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
   };
 
   const updateCartMeta = (data) => {
@@ -205,6 +229,26 @@
         node.outerHTML = html;
       });
     });
+  };
+
+  const refreshCart = async () => {
+    if (!ajax.ajaxUrl || !ajax.nonce) {
+      return;
+    }
+
+    const url = new URL(ajax.ajaxUrl);
+    url.searchParams.set("action", "kindertoys_cart_snapshot");
+    url.searchParams.set("nonce", ajax.nonce);
+
+    try {
+      const response = await fetch(url.toString(), { credentials: "same-origin" });
+      const result = await response.json();
+      if (result?.success) {
+        updateCartMeta(result.data || {});
+      }
+    } catch (error) {
+      return;
+    }
   };
 
   if (window.jQuery) {
@@ -343,4 +387,5 @@
   });
 
   syncWishlistButtons();
+  refreshCart();
 })();
