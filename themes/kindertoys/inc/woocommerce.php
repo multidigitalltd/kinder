@@ -23,8 +23,10 @@ function kindertoys_woocommerce_hooks(): void
     remove_action('woocommerce_sidebar', 'woocommerce_get_sidebar', 10);
     remove_action('woocommerce_before_shop_loop_item_title', 'woocommerce_show_product_loop_sale_flash', 10);
     remove_action('woocommerce_before_single_product_summary', 'woocommerce_show_product_sale_flash', 10);
+    remove_action('woocommerce_before_main_content', 'woocommerce_breadcrumb', 20);
 
     add_action('woocommerce_before_main_content', 'kindertoys_woo_wrapper_open', 10);
+    add_action('woocommerce_before_main_content', 'kindertoys_product_breadcrumb', 11);
     add_action('woocommerce_after_main_content', 'kindertoys_woo_wrapper_close', 10);
     add_action('woocommerce_before_shop_loop', 'kindertoys_archive_filters', 18);
     add_action('woocommerce_after_shop_loop', 'kindertoys_category_bottom_description', 30);
@@ -88,6 +90,22 @@ function kindertoys_woo_wrapper_open(): void
 function kindertoys_woo_wrapper_close(): void
 {
     echo '</main>';
+}
+
+function kindertoys_product_breadcrumb(): void
+{
+    if (! is_product() || ! function_exists('woocommerce_breadcrumb')) {
+        return;
+    }
+
+    woocommerce_breadcrumb([
+        'delimiter' => '<span class="kt-breadcrumb__sep" aria-hidden="true">/</span>',
+        'wrap_before' => '<nav class="woocommerce-breadcrumb kt-breadcrumb" aria-label="' . esc_attr__('פירורי לחם', 'kindertoys') . '">',
+        'wrap_after' => '</nav>',
+        'before' => '',
+        'after' => '',
+        'home' => __('ראשי', 'kindertoys'),
+    ]);
 }
 
 function kindertoys_category_bottom_description(): void

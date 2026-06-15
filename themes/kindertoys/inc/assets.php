@@ -87,13 +87,16 @@ function kindertoys_enqueue_inline_settings_css(): void
     $fallback = kindertoys_css_font_stack($fallback, '"Ploni", "Arial", system-ui, sans-serif');
     $body_regular_url = (string) kindertoys_setting('body_font_regular_url', '');
     $body_medium_url = (string) kindertoys_setting('body_font_medium_url', '');
+    $body_semibold_url = (string) kindertoys_setting('body_font_semibold_url', '');
+    $body_bold_url = (string) kindertoys_setting('body_font_bold_url', '');
+    $body_black_url = (string) kindertoys_setting('body_font_black_url', '');
 
     $css = '';
     $css .= kindertoys_font_face_css($body_font, $body_regular_url, 400);
     $css .= kindertoys_font_face_css($body_font, '' !== trim($body_medium_url) ? $body_medium_url : $body_regular_url, 500);
-    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_semibold_url', ''), 600);
-    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_bold_url', ''), 700);
-    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_black_url', ''), 900);
+    $css .= kindertoys_font_face_css($body_font, '' !== trim($body_semibold_url) ? $body_semibold_url : ('' !== trim($body_bold_url) ? $body_bold_url : $body_regular_url), 600);
+    $css .= kindertoys_font_face_css($body_font, '' !== trim($body_bold_url) ? $body_bold_url : ('' !== trim($body_semibold_url) ? $body_semibold_url : $body_regular_url), 700);
+    $css .= kindertoys_font_face_css($body_font, '' !== trim($body_black_url) ? $body_black_url : ('' !== trim($body_bold_url) ? $body_bold_url : $body_regular_url), 900);
     $css .= kindertoys_font_face_css($display_font, $display_semibold_url, 700);
     $css .= kindertoys_font_face_css($display_font, $display_bold_url, 800);
     $css .= kindertoys_font_face_css($display_font, $display_black_url, 900);
