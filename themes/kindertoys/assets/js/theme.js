@@ -7,6 +7,9 @@
   const cartDrawer = document.querySelector("[data-cart-drawer]");
   const cartOpeners = document.querySelectorAll("[data-cart-drawer-open]");
   const cartCloseEls = document.querySelectorAll("[data-cart-drawer-close]");
+  const wishlistDrawer = document.querySelector("[data-wishlist-drawer]");
+  const wishlistOpeners = document.querySelectorAll("[data-wishlist-open]");
+  const wishlistCloseEls = document.querySelectorAll("[data-wishlist-close]");
   const searchForm = document.querySelector("[data-live-search]");
   const searchInput = document.querySelector("[data-live-search-input]");
   const searchResults = document.querySelector("[data-live-search-results]");
@@ -61,6 +64,68 @@
     document.documentElement.classList.remove("kt-cart-open");
   };
 
+  const wishlistKey = "kindertoys_wishlist";
+  const getWishlist = () => {
+    try {
+      const ids = JSON.parse(window.localStorage.getItem(wishlistKey) || "[]");
+      return Array.isArray(ids) ? ids.map(String) : [];
+    } catch (error) {
+      return [];
+    }
+  };
+
+  const setWishlist = (ids) => {
+    window.localStorage.setItem(wishlistKey, JSON.stringify([...new Set(ids.map(String))]));
+    syncWishlistButtons();
+  };
+
+  const syncWishlistButtons = () => {
+    const ids = new Set(getWishlist());
+    document.querySelectorAll("[data-wishlist-toggle]").forEach((button) => {
+      const isActive = ids.has(String(button.getAttribute("data-product-id")));
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+    });
+  };
+
+  const loadWishlist = async () => {
+    const target = document.querySelector("[data-wishlist-items]");
+    if (!target || !ajax.ajaxUrl || !ajax.nonce) {
+      return;
+    }
+
+    const body = new URLSearchParams({ action: "kindertoys_wishlist_products", nonce: ajax.nonce });
+    getWishlist().forEach((id) => body.append("ids[]", id));
+    const response = await fetch(ajax.ajaxUrl, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
+    const result = await response.json();
+    target.innerHTML = result?.data?.html || "";
+  };
+
+  const openWishlist = () => {
+    if (!wishlistDrawer) {
+      return;
+    }
+    loadWishlist();
+    wishlistDrawer.classList.add("is-open");
+    wishlistDrawer.setAttribute("aria-hidden", "false");
+    document.documentElement.classList.add("kt-wishlist-open");
+    wishlistDrawer.querySelector("[data-wishlist-close]")?.focus();
+  };
+
+  const closeWishlist = () => {
+    if (!wishlistDrawer) {
+      return;
+    }
+    wishlistDrawer.classList.remove("is-open");
+    wishlistDrawer.setAttribute("aria-hidden", "true");
+    document.documentElement.classList.remove("kt-wishlist-open");
+  };
+
   cartOpeners.forEach((opener) => {
     opener.addEventListener("click", (event) => {
       if (!cartDrawer) {
@@ -73,6 +138,42 @@
 
   cartCloseEls.forEach((button) => {
     button.addEventListener("click", closeCart);
+  });
+
+  wishlistOpeners.forEach((opener) => {
+    opener.addEventListener("click", (event) => {
+      if (!wishlistDrawer) {
+        return;
+      }
+      event.preventDefault();
+      openWishlist();
+    });
+  });
+
+  wishlistCloseEls.forEach((button) => {
+    button.addEventListener("click", closeWishlist);
+  });
+
+  document.addEventListener("click", (event) => {
+    const toggle = event.target.closest("[data-wishlist-toggle]");
+    if (!toggle) {
+      return;
+    }
+    event.preventDefault();
+    const id = String(toggle.getAttribute("data-product-id") || "");
+    const ids = getWishlist();
+    setWishlist(ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]);
+  });
+
+  document.addEventListener("click", (event) => {
+    const remove = event.target.closest("[data-wishlist-remove]");
+    const item = remove?.closest("[data-product-id]");
+    if (!remove || !item) {
+      return;
+    }
+    const id = String(item.getAttribute("data-product-id") || "");
+    setWishlist(getWishlist().filter((itemId) => itemId !== id));
+    loadWishlist();
   });
 
   const setCartBusy = (isBusy) => {
@@ -237,6 +338,9 @@
 
     closeMenu();
     closeCart();
+    closeWishlist();
     hideSearchResults();
   });
+
+  syncWishlistButtons();
 })();

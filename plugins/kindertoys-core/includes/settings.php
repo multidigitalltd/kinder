@@ -48,10 +48,17 @@ function kindertoys_core_default_settings(): array
         'hero_secondary_label' => 'לכל המוצרים',
         'hero_secondary_url' => '/shop/',
         'hero_image_url' => '',
+        'hero_rating_text' => '4.9',
+        'hero_rating_suffix' => '(+50,000 הורים)',
+        'hero_shipping_text' => 'משלוח מחר עד הבית',
+        'hero_inventory_text' => '+10,000 מוצרים במלאי',
+        'hero_float_top_text' => '+120 מוצרים חדשים',
+        'hero_float_bottom_text' => 'חינם מעל 299 ₪',
         'categories_eyebrow' => 'קטגוריות מובילות',
         'categories_title' => 'בחרו את העולם המתאים לכם',
         'products_eyebrow' => 'מוצרים חמים',
         'products_title' => 'הנבחרים של קינדי',
+        'featured_products_shortcode' => '[products limit="10" columns="5" orderby="popularity" stock_status="instock" visibility="visible"]',
         'age_eyebrow' => 'בוחרים לפי גיל',
         'age_title' => 'למצוא את המתנה המושלמת',
         'brands_eyebrow' => 'מותגים אהובים',
@@ -226,10 +233,17 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'hero_secondary_label', __('Secondary button label', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'hero_secondary_url', __('Secondary button URL', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'hero_image_url', __('Hero image URL', 'kindertoys-core'), 'Leave empty to use the bundled Lovable image.'); ?>
+                <?php kindertoys_core_text_field($settings, 'hero_rating_text', __('Hero rating text', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'hero_rating_suffix', __('Hero rating suffix', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'hero_shipping_text', __('Hero shipping proof text', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'hero_inventory_text', __('Hero inventory proof text', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'hero_float_top_text', __('Hero top floating label', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'hero_float_bottom_text', __('Hero bottom floating label', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'categories_eyebrow', __('Categories eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'categories_title', __('Categories title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'products_eyebrow', __('Products eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'products_title', __('Products title', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'featured_products_shortcode', __('Featured products shortcode', 'kindertoys-core'), 'Examples: [products ids="12,34,56" columns="5"] or [products category="lego" limit="10" columns="5"]'); ?>
                 <?php kindertoys_core_text_field($settings, 'age_eyebrow', __('Age section eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'age_title', __('Age section title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'brands_eyebrow', __('Brands eyebrow', 'kindertoys-core')); ?>

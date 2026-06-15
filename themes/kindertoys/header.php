@@ -64,7 +64,7 @@ declare(strict_types=1);
                 <?php echo kindertoys_svg_icon('user'); ?>
                 <span><?php esc_html_e('התחברות', 'kindertoys'); ?></span>
             </a>
-            <a class="kt-icon-button kt-header-action" href="<?php echo esc_url(home_url('/wishlist/')); ?>" aria-label="<?php esc_attr_e('מועדפים', 'kindertoys'); ?>">
+            <a class="kt-icon-button kt-header-action" href="<?php echo esc_url(home_url('/wishlist/')); ?>" aria-label="<?php esc_attr_e('מועדפים', 'kindertoys'); ?>" data-wishlist-open>
                 <?php echo kindertoys_svg_icon('heart'); ?>
                 <span><?php esc_html_e('מועדפים', 'kindertoys'); ?></span>
             </a>

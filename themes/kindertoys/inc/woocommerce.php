@@ -25,6 +25,8 @@ function kindertoys_woocommerce_hooks(): void
     add_action('woocommerce_before_main_content', 'kindertoys_woo_wrapper_open', 10);
     add_action('woocommerce_after_main_content', 'kindertoys_woo_wrapper_close', 10);
 
+    remove_action('woocommerce_before_shop_loop_item', 'woocommerce_template_loop_product_link_open', 10);
+    remove_action('woocommerce_after_shop_loop_item', 'woocommerce_template_loop_product_link_close', 5);
     remove_action('woocommerce_before_shop_loop_item_title', 'woocommerce_template_loop_product_thumbnail', 10);
     add_action('woocommerce_before_shop_loop_item_title', 'kindertoys_product_card_media', 10);
 
@@ -43,11 +45,14 @@ function kindertoys_woocommerce_hooks(): void
     add_filter('woocommerce_add_to_cart_fragments', 'kindertoys_cart_fragments');
 
     add_action('wp_footer', 'kindertoys_cart_drawer', 20);
+    add_action('wp_footer', 'kindertoys_wishlist_drawer', 21);
 
     add_action('wp_ajax_kindertoys_update_cart_item', 'kindertoys_ajax_update_cart_item');
     add_action('wp_ajax_nopriv_kindertoys_update_cart_item', 'kindertoys_ajax_update_cart_item');
     add_action('wp_ajax_kindertoys_search_products', 'kindertoys_ajax_search_products');
     add_action('wp_ajax_nopriv_kindertoys_search_products', 'kindertoys_ajax_search_products');
+    add_action('wp_ajax_kindertoys_wishlist_products', 'kindertoys_ajax_wishlist_products');
+    add_action('wp_ajax_nopriv_kindertoys_wishlist_products', 'kindertoys_ajax_wishlist_products');
 }
 
 function kindertoys_woo_wrapper_open(): void
@@ -78,8 +83,8 @@ function kindertoys_product_card_media(): void
         echo '<span class="kt-badge">' . esc_html($custom_badge) . '</span>';
     }
 
-    echo '<a class="kt-product-card__wish" href="' . esc_url(home_url('/wishlist/')) . '" aria-label="' . esc_attr__('הוספה למועדפים', 'kindertoys') . '">' . kindertoys_svg_icon('heart') . '</a>';
-    echo woocommerce_get_product_thumbnail('kindertoys-card');
+    echo '<button class="kt-product-card__wish" type="button" data-wishlist-toggle data-product-id="' . esc_attr((string) $product->get_id()) . '" aria-pressed="false" aria-label="' . esc_attr__('הוספה למועדפים', 'kindertoys') . '">' . kindertoys_svg_icon('heart') . '</button>';
+    echo '<a class="kt-product-card__media-link" href="' . esc_url($product->get_permalink()) . '" aria-label="' . esc_attr($product->get_name()) . '">' . woocommerce_get_product_thumbnail('kindertoys-card') . '</a>';
     echo '</div>';
 }
 
@@ -94,7 +99,8 @@ function kindertoys_product_card_title(): void
         }
     }
 
-    echo '<h2 class="woocommerce-loop-product__title kt-product-card__title">' . esc_html(get_the_title()) . '</h2>';
+    $url = $product instanceof WC_Product ? $product->get_permalink() : get_permalink();
+    echo '<h2 class="woocommerce-loop-product__title kt-product-card__title"><a href="' . esc_url($url) . '">' . esc_html(get_the_title()) . '</a></h2>';
 }
 
 function kindertoys_product_card_actions(): void
@@ -126,6 +132,34 @@ function kindertoys_product_card_actions(): void
     echo '<div class="kt-product-card__actions">';
     echo '<a ' . $attributes . '><span class="screen-reader-text">' . esc_html($product->add_to_cart_text()) . '</span>' . kindertoys_svg_icon('plus') . '</a>';
     echo '</div>';
+}
+
+function kindertoys_wishlist_drawer(): void
+{
+    if (! class_exists('WooCommerce')) {
+        return;
+    }
+    ?>
+    <aside class="kt-wishlist-drawer" aria-hidden="true" aria-labelledby="kt-wishlist-title" data-wishlist-drawer>
+        <div class="kt-wishlist-drawer__panel" role="dialog" aria-modal="true">
+            <header class="kt-cart-drawer__head">
+                <div>
+                    <span><?php esc_html_e('מועדפים', 'kindertoys'); ?></span>
+                    <h2 id="kt-wishlist-title"><?php esc_html_e('המוצרים שאהבתם', 'kindertoys'); ?></h2>
+                </div>
+                <button class="kt-icon-button" type="button" aria-label="<?php esc_attr_e('סגור מועדפים', 'kindertoys'); ?>" data-wishlist-close><?php echo kindertoys_svg_icon('close'); ?></button>
+            </header>
+            <div class="kt-wishlist-drawer__items" data-wishlist-items>
+                <div class="kt-cart-drawer__empty">
+                    <?php echo kindertoys_svg_icon('heart'); ?>
+                    <strong><?php esc_html_e('עדיין אין מועדפים', 'kindertoys'); ?></strong>
+                    <span><?php esc_html_e('לחצו על הלב בכרטיס מוצר כדי לשמור אותו כאן.', 'kindertoys'); ?></span>
+                </div>
+            </div>
+        </div>
+        <button class="kt-cart-drawer__backdrop" type="button" aria-label="<?php esc_attr_e('סגור מועדפים', 'kindertoys'); ?>" data-wishlist-close></button>
+    </aside>
+    <?php
 }
 
 function kindertoys_single_product_brand(): void
@@ -424,4 +458,56 @@ function kindertoys_ajax_search_products(): void
     wp_reset_postdata();
 
     wp_send_json_success(['html' => ob_get_clean()]);
+}
+
+function kindertoys_ajax_wishlist_products(): void
+{
+    check_ajax_referer('kindertoys_ajax', 'nonce');
+
+    $ids = isset($_POST['ids']) && is_array($_POST['ids']) ? array_map('absint', wp_unslash($_POST['ids'])) : [];
+    $ids = array_values(array_filter(array_unique($ids)));
+
+    if (empty($ids)) {
+        wp_send_json_success(['html' => kindertoys_wishlist_empty_html()]);
+    }
+
+    $query = new WP_Query([
+        'post_type' => 'product',
+        'post_status' => 'publish',
+        'post__in' => $ids,
+        'orderby' => 'post__in',
+        'posts_per_page' => 20,
+        'no_found_rows' => true,
+    ]);
+
+    ob_start();
+    if ($query->have_posts()) {
+        echo '<ul class="kt-wishlist-list">';
+        while ($query->have_posts()) {
+            $query->the_post();
+            $product = wc_get_product(get_the_ID());
+            if (! $product instanceof WC_Product) {
+                continue;
+            }
+            echo '<li class="kt-wishlist-item" data-product-id="' . esc_attr((string) $product->get_id()) . '">';
+            echo '<a class="kt-cart-drawer__thumb" href="' . esc_url(get_permalink()) . '">' . $product->get_image('woocommerce_thumbnail') . '</a>';
+            echo '<div class="kt-cart-drawer__body">';
+            echo '<a class="kt-cart-drawer__name" href="' . esc_url(get_permalink()) . '">' . esc_html(get_the_title()) . '</a>';
+            echo '<span class="kt-cart-drawer__price">' . wp_kses_post($product->get_price_html()) . '</span>';
+            echo '</div>';
+            echo '<button class="kt-cart-drawer__remove" type="button" data-wishlist-remove aria-label="' . esc_attr__('הסר מהמועדפים', 'kindertoys') . '">' . kindertoys_svg_icon('close') . '</button>';
+            echo '</li>';
+        }
+        echo '</ul>';
+    } else {
+        echo kindertoys_wishlist_empty_html();
+    }
+    wp_reset_postdata();
+
+    wp_send_json_success(['html' => ob_get_clean()]);
+}
+
+function kindertoys_wishlist_empty_html(): string
+{
+    return '<div class="kt-cart-drawer__empty">' . kindertoys_svg_icon('heart') . '<strong>' . esc_html__('עדיין אין מועדפים', 'kindertoys') . '</strong><span>' . esc_html__('לחצו על הלב בכרטיס מוצר כדי לשמור אותו כאן.', 'kindertoys') . '</span></div>';
 }
