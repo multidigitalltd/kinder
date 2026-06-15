@@ -53,6 +53,7 @@ h3,
 .woocommerce-products-header__title,
 .product_title {
   font-family: var(--kt-display-font);
+  font-weight: 900;
 }
 
 img,

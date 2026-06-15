@@ -78,6 +78,9 @@ function kindertoys_enqueue_inline_settings_css(): void
     $fallback = (string) kindertoys_setting('font_family', '"Ploni", "Arial", system-ui, sans-serif');
     $body_font = (string) kindertoys_setting('body_font_family', 'Ploni');
     $display_font = (string) kindertoys_setting('display_font_family', 'PloniYad');
+    $display_semibold_url = (string) kindertoys_setting('display_font_semibold_url', '');
+    $display_bold_url = (string) kindertoys_setting('display_font_bold_url', '');
+    $display_black_url = (string) kindertoys_setting('display_font_black_url', '');
 
     $body_font = kindertoys_css_font_name($body_font, 'Ploni');
     $display_font = kindertoys_css_font_name($display_font, 'PloniYad');
@@ -89,11 +92,13 @@ function kindertoys_enqueue_inline_settings_css(): void
     $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_semibold_url', ''), 600);
     $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_bold_url', ''), 700);
     $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_black_url', ''), 900);
-    $css .= kindertoys_font_face_css($display_font, (string) kindertoys_setting('display_font_regular_url', ''), 400);
-    $css .= kindertoys_font_face_css($display_font, (string) kindertoys_setting('display_font_semibold_url', ''), 600);
-    $css .= kindertoys_font_face_css($display_font, (string) kindertoys_setting('display_font_bold_url', ''), 800);
-    $css .= kindertoys_font_face_css($display_font, (string) kindertoys_setting('display_font_black_url', ''), 900);
-    $css .= ':root{--kt-font:"' . $body_font . '",' . $fallback . ';--kt-display-font:"' . $display_font . '","' . $body_font . '",' . $fallback . ';}';
+    $css .= kindertoys_font_face_css($display_font, $display_semibold_url, 700);
+    $css .= kindertoys_font_face_css($display_font, $display_bold_url, 800);
+    $css .= kindertoys_font_face_css($display_font, $display_black_url, 900);
+
+    $has_display_heavy = '' !== trim($display_semibold_url . $display_bold_url . $display_black_url);
+    $display_stack = $has_display_heavy ? '"' . $display_font . '","' . $body_font . '",' . $fallback : '"' . $body_font . '",' . $fallback;
+    $css .= ':root{--kt-font:"' . $body_font . '",' . $fallback . ';--kt-display-font:' . $display_stack . ';}';
 
     wp_add_inline_style('kindertoys-base', $css);
 }

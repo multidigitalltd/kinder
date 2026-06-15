@@ -23,7 +23,6 @@ function kindertoys_core_default_settings(): array
         'body_font_bold_url' => '',
         'body_font_black_url' => '',
         'display_font_family' => 'PloniYad',
-        'display_font_regular_url' => '',
         'display_font_semibold_url' => '',
         'display_font_bold_url' => '',
         'display_font_black_url' => '',
@@ -275,8 +274,7 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'body_font_bold_url', __('Body bold font URL - 700', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'body_font_black_url', __('Body black font URL - 900', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'display_font_family', __('Display/headings font name', 'kindertoys-core'), 'Example: PloniYad'); ?>
-                <?php kindertoys_core_text_field($settings, 'display_font_regular_url', __('Display regular font URL - 400', 'kindertoys-core'), 'Used for headings if provided.'); ?>
-                <?php kindertoys_core_text_field($settings, 'display_font_semibold_url', __('Display semibold font URL - 600', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'display_font_semibold_url', __('Display semibold font URL - 700', 'kindertoys-core'), 'Only use a real semibold/bold heading font here. Do not upload a light file.'); ?>
                 <?php kindertoys_core_text_field($settings, 'display_font_bold_url', __('Display bold font URL - 800', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'display_font_black_url', __('Display black font URL - 900', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'font_family', __('Fallback font stack', 'kindertoys-core'), 'Example: "Ploni", "Arial", system-ui, sans-serif'); ?>
