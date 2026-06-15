@@ -415,6 +415,58 @@
     postCartUpdate(item.getAttribute("data-cart-item"), Number.parseInt(input.value || "0", 10));
   });
 
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-save-cart]");
+    const resultBox = document.querySelector("[data-save-cart-result]");
+    if (!button || !ajax.ajaxUrl || !ajax.nonce) {
+      return;
+    }
+
+    event.preventDefault();
+    button.disabled = true;
+    const body = new URLSearchParams({
+      action: "kindertoys_save_cart",
+      nonce: ajax.nonce,
+    });
+
+    try {
+      const response = await fetch(ajax.ajaxUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+      const result = await response.json();
+      if (result?.success && result.data?.url) {
+        if (resultBox) {
+          resultBox.hidden = false;
+          resultBox.innerHTML = `<span>${result.data.message || "הסל נשמר"}</span><input readonly value="${result.data.url}"><button type="button" data-copy-saved-cart>העתקה</button>`;
+        }
+        showToast(result.data.message || "הסל נשמר", "success");
+      } else {
+        showToast(result?.data?.message || "לא הצלחנו לשמור את הסל", "error");
+      }
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-copy-saved-cart]");
+    const input = button?.parentElement?.querySelector("input");
+    if (!button || !input) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(input.value);
+      showToast("הקישור הועתק", "success");
+    } catch (error) {
+      input.select();
+      showToast("אפשר להעתיק את הקישור מהשדה", "info");
+    }
+  });
+
   document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-single-qty]");
     const quantity = button?.closest(".quantity");

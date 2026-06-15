@@ -64,6 +64,10 @@ function kindertoys_core_default_settings(): array
         'featured_category_ids' => [],
         'featured_product_ids' => [],
         'free_shipping_threshold' => '299',
+        'schema_shipping_country' => 'IL',
+        'schema_return_days' => '14',
+        'saved_cart_webhook_url' => '',
+        'saved_cart_email_to' => '',
         'checkout_bump_enabled' => '1',
         'checkout_bump_product_id' => '0',
         'checkout_bump_title' => 'רוצים להוסיף עוד משהו קטן?',
@@ -207,7 +211,7 @@ function kindertoys_core_sanitize_settings(mixed $input): array
             continue;
         }
 
-        if ('free_shipping_threshold' === $key) {
+        if (in_array($key, ['free_shipping_threshold', 'schema_return_days'], true)) {
             $output[$key] = (string) max(0, absint($value));
             continue;
         }
@@ -311,6 +315,10 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'products_title', __('Products title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_featured_products_fields($settings); ?>
                 <?php kindertoys_core_text_field($settings, 'free_shipping_threshold', __('Free shipping threshold', 'kindertoys-core'), 'Cart drawer and cart page progress amount. Use 0 to hide.'); ?>
+                <?php kindertoys_core_text_field($settings, 'schema_shipping_country', __('Schema shipping country', 'kindertoys-core'), 'ISO country code, for example IL.'); ?>
+                <?php kindertoys_core_text_field($settings, 'schema_return_days', __('Schema return days', 'kindertoys-core'), 'Used for Product merchant listing return policy.'); ?>
+                <?php kindertoys_core_text_field($settings, 'saved_cart_webhook_url', __('Saved cart webhook URL', 'kindertoys-core'), 'Optional. Called when a customer saves a cart.'); ?>
+                <?php kindertoys_core_text_field($settings, 'saved_cart_email_to', __('Saved cart email recipient', 'kindertoys-core'), 'Optional. Leave empty to use the site admin email.'); ?>
                 <?php kindertoys_core_checkout_bump_fields($settings); ?>
                 <?php kindertoys_core_text_field($settings, 'age_eyebrow', __('Age section eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'age_title', __('Age section title', 'kindertoys-core')); ?>
