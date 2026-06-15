@@ -180,6 +180,16 @@
   box-shadow: 0 8px 18px rgba(217, 39, 50, .22);
 }
 
+.woocommerce span.onsale {
+  display: none;
+}
+
+.kt-badge--stock {
+  background: var(--kt-navy);
+  color: var(--kt-white);
+  box-shadow: 0 8px 18px rgba(24, 51, 109, .2);
+}
+
 .kt-product-card__wish {
   position: absolute;
   z-index: 2;
@@ -212,9 +222,9 @@
   min-height: 2.95rem;
   padding: .15rem 1rem 0;
   color: var(--kt-navy);
-  font-size: .96rem;
+  font-size: 1.08rem;
   font-weight: 900;
-  line-height: 1.32;
+  line-height: 1.28;
 }
 
 .woocommerce ul.products li.product .woocommerce-loop-product__title a {
@@ -519,17 +529,74 @@
 }
 
 .kt-single-kicker__brand {
+  display: inline-grid;
+  min-height: 38px;
+  place-items: center;
+  padding: .35rem .85rem;
+  border: 1px solid rgba(38, 117, 217, .18);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff, var(--kt-blue-soft));
   color: var(--kt-blue);
-  font-size: .82rem;
+  font-size: .95rem;
   font-weight: 900;
   letter-spacing: 0;
   text-transform: uppercase;
+  box-shadow: 0 8px 18px rgba(15, 35, 70, .08);
 }
 
 .kt-badge--inline {
   position: static;
   display: inline-flex;
   width: fit-content;
+}
+
+.kt-stock-alert {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  margin: .85rem 0 0;
+  padding: .55rem .8rem;
+  border: 1px solid rgba(217, 39, 50, .16);
+  border-radius: 12px;
+  background: var(--kt-red-soft);
+  color: var(--kt-red);
+  font-weight: 900;
+}
+
+.kt-waitlist {
+  display: grid;
+  gap: .7rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid rgba(217, 39, 50, .16);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff, var(--kt-red-soft));
+}
+
+.kt-waitlist strong {
+  color: var(--kt-navy);
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.kt-waitlist > span {
+  color: rgba(24, 51, 109, .78);
+  font-weight: 700;
+}
+
+.kt-waitlist form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: .55rem;
+}
+
+.kt-waitlist input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 .85rem;
+  border: 1px solid rgba(24, 51, 109, .14);
+  border-radius: 12px;
+  background: var(--kt-white);
 }
 
 .woocommerce div.product .woocommerce-product-rating {

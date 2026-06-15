@@ -21,6 +21,8 @@ function kindertoys_woocommerce_hooks(): void
     remove_action('woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10);
     remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);
     remove_action('woocommerce_sidebar', 'woocommerce_get_sidebar', 10);
+    remove_action('woocommerce_before_shop_loop_item_title', 'woocommerce_show_product_loop_sale_flash', 10);
+    remove_action('woocommerce_before_single_product_summary', 'woocommerce_show_product_sale_flash', 10);
 
     add_action('woocommerce_before_main_content', 'kindertoys_woo_wrapper_open', 10);
     add_action('woocommerce_after_main_content', 'kindertoys_woo_wrapper_close', 10);
@@ -43,11 +45,14 @@ function kindertoys_woocommerce_hooks(): void
     add_action('woocommerce_single_product_summary', 'kindertoys_single_product_brand', 4);
     add_action('woocommerce_single_product_summary', 'kindertoys_single_product_facts', 25);
     add_action('woocommerce_single_product_summary', 'kindertoys_single_product_highlights', 26);
+    add_action('woocommerce_single_product_summary', 'kindertoys_single_out_of_stock_panel', 31);
     add_action('woocommerce_single_product_summary', 'kindertoys_single_product_trust', 35);
 
     add_filter('woocommerce_product_tabs', 'kindertoys_product_tabs');
     add_filter('woocommerce_add_to_cart_fragments', 'kindertoys_cart_fragments');
     add_filter('woocommerce_structured_data_product', 'kindertoys_product_schema', 20, 2);
+    add_filter('woocommerce_get_stock_html', 'kindertoys_stock_html', 20, 2);
+    add_filter('posts_clauses', 'kindertoys_outofstock_last_clauses', 20, 2);
     add_action('woocommerce_before_cart_totals', 'kindertoys_cart_free_shipping_progress');
     add_action('woocommerce_review_order_before_payment', 'kindertoys_checkout_bump');
     add_action('woocommerce_before_calculate_totals', 'kindertoys_apply_checkout_bump_discount', 99);
@@ -237,10 +242,10 @@ function kindertoys_product_card_media(): void
 
     echo '<div class="kt-product-card__media">';
 
-    $custom_badge = function_exists('kindertoys_core_get_product_meta') ? kindertoys_core_get_product_meta($product, 'badge') : '';
+    $custom_badge = kindertoys_product_badge_text($product);
 
-    if ($product->is_on_sale()) {
-        echo '<span class="kt-badge kt-badge--sale">' . esc_html__('Sale', 'kindertoys') . '</span>';
+    if (! $product->is_in_stock()) {
+        echo '<span class="kt-badge kt-badge--stock">' . esc_html__('אזל מהמלאי', 'kindertoys') . '</span>';
     } elseif ('' !== $custom_badge) {
         echo '<span class="kt-badge">' . esc_html($custom_badge) . '</span>';
     }
@@ -248,6 +253,28 @@ function kindertoys_product_card_media(): void
     echo '<button class="kt-product-card__wish" type="button" data-wishlist-toggle data-product-id="' . esc_attr((string) $product->get_id()) . '" aria-pressed="false" aria-label="' . esc_attr__('הוספה למועדפים', 'kindertoys') . '">' . kindertoys_svg_icon('heart') . '</button>';
     echo '<a class="kt-product-card__media-link" href="' . esc_url($product->get_permalink()) . '" aria-label="' . esc_attr($product->get_name()) . '">' . woocommerce_get_product_thumbnail('kindertoys-card') . '</a>';
     echo '</div>';
+}
+
+function kindertoys_product_badge_text(WC_Product $product): string
+{
+    $product_badge = function_exists('kindertoys_core_get_product_meta') ? kindertoys_core_get_product_meta($product, 'badge') : '';
+    if ('' !== $product_badge) {
+        return $product_badge;
+    }
+
+    $rules = preg_split('/\r\n|\r|\n/', (string) kindertoys_setting('product_badge_category_rules', '')) ?: [];
+    foreach ($rules as $rule) {
+        [$slug, $label] = array_pad(array_map('trim', explode('|', $rule, 2)), 2, '');
+        if ('' !== $slug && '' !== $label && has_term($slug, 'product_cat', $product->get_id())) {
+            return $label;
+        }
+    }
+
+    if ($product->is_on_sale()) {
+        return (string) kindertoys_setting('product_badge_sale_text', '');
+    }
+
+    return '';
 }
 
 function kindertoys_product_card_title(): void
@@ -378,9 +405,11 @@ function kindertoys_single_product_brand(): void
     }
 
     $brand = kindertoys_core_get_product_meta($product, 'brand_label');
-    $badge = kindertoys_core_get_product_meta($product, 'badge');
+    $badge = kindertoys_product_badge_text($product);
 
-    if ('' === $brand && '' === $badge && ! $product->is_on_sale()) {
+    $sale_badge_text = $product->is_on_sale() ? (string) kindertoys_setting('product_badge_sale_text', '') : '';
+
+    if ('' === $brand && '' === $badge && '' === $sale_badge_text && $product->is_in_stock()) {
         return;
     }
 
@@ -390,13 +419,69 @@ function kindertoys_single_product_brand(): void
         echo '<span class="kt-single-kicker__brand">' . esc_html($brand) . '</span>';
     }
 
-    if ($product->is_on_sale()) {
-        echo '<span class="kt-badge kt-badge--inline">' . esc_html__('מבצע', 'kindertoys') . '</span>';
+    if (! $product->is_in_stock()) {
+        echo '<span class="kt-badge kt-badge--inline kt-badge--stock">' . esc_html__('אזל מהמלאי', 'kindertoys') . '</span>';
     } elseif ('' !== $badge) {
         echo '<span class="kt-badge kt-badge--inline">' . esc_html($badge) . '</span>';
+    } elseif ('' !== $sale_badge_text) {
+        echo '<span class="kt-badge kt-badge--inline">' . esc_html($sale_badge_text) . '</span>';
     }
 
     echo '</div>';
+}
+
+function kindertoys_single_out_of_stock_panel(): void
+{
+    global $product;
+
+    if (! $product instanceof WC_Product || $product->is_in_stock()) {
+        return;
+    }
+
+    ?>
+    <section class="kt-waitlist" aria-label="<?php esc_attr_e('רשימת המתנה', 'kindertoys'); ?>">
+        <strong><?php esc_html_e('המוצר אזל מהמלאי', 'kindertoys'); ?></strong>
+        <span><?php esc_html_e('השאירו פרטים ונעדכן אתכם ברגע שהוא חוזר.', 'kindertoys'); ?></span>
+        <form data-waitlist-form>
+            <input type="hidden" name="product_id" value="<?php echo esc_attr((string) $product->get_id()); ?>">
+            <label>
+                <span class="screen-reader-text"><?php esc_html_e('שם מלא', 'kindertoys'); ?></span>
+                <input type="text" name="name" autocomplete="name" placeholder="<?php esc_attr_e('שם מלא', 'kindertoys'); ?>" required>
+            </label>
+            <label>
+                <span class="screen-reader-text"><?php esc_html_e('אימייל', 'kindertoys'); ?></span>
+                <input type="email" name="email" autocomplete="email" placeholder="<?php esc_attr_e('אימייל לעדכון', 'kindertoys'); ?>" required>
+            </label>
+            <button class="kt-button" type="submit"><?php esc_html_e('עדכנו אותי כשחוזר', 'kindertoys'); ?></button>
+        </form>
+    </section>
+    <?php
+}
+
+function kindertoys_stock_html(string $html, WC_Product $product): string
+{
+    if ($product->is_in_stock()) {
+        return '';
+    }
+
+    return '<p class="stock out-of-stock kt-stock-alert">' . esc_html__('אזל מהמלאי', 'kindertoys') . '</p>';
+}
+
+function kindertoys_outofstock_last_clauses(array $clauses, WP_Query $query): array
+{
+    if (is_admin() || ! $query->is_main_query() || ! (is_shop() || is_product_taxonomy())) {
+        return $clauses;
+    }
+
+    global $wpdb;
+    if (! str_contains($clauses['join'], 'kt_stock_status')) {
+        $clauses['join'] .= " LEFT JOIN {$wpdb->postmeta} AS kt_stock_status ON ({$wpdb->posts}.ID = kt_stock_status.post_id AND kt_stock_status.meta_key = '_stock_status') ";
+    }
+
+    $stock_order = "CASE WHEN kt_stock_status.meta_value = 'outofstock' THEN 1 ELSE 0 END ASC";
+    $clauses['orderby'] = '' !== trim($clauses['orderby']) ? $stock_order . ', ' . $clauses['orderby'] : $stock_order;
+
+    return $clauses;
 }
 
 function kindertoys_single_product_facts(): void
@@ -560,7 +645,7 @@ function kindertoys_cart_free_shipping_progress(): void
                 <span><?php esc_html_e('אפשר להמשיך לתשלום בראש שקט.', 'kindertoys'); ?></span>
             <?php else : ?>
                 <strong><?php echo wp_kses_post(sprintf(__('נשארו %s למשלוח חינם', 'kindertoys'), wc_price($data['remaining']))); ?></strong>
-                <span><?php esc_html_e('עוד מוצר קטן יכול לסגור את הפינה.', 'kindertoys'); ?></span>
+                <span><?php echo esc_html((string) kindertoys_setting('free_shipping_hint_text', 'עוד מוצר קטן יכול לסגור את הפינה.')); ?></span>
             <?php endif; ?>
         </div>
         <span class="kt-cart-progress__bar" aria-hidden="true"><i style="width: <?php echo esc_attr((string) $data['percent']); ?>%"></i></span>
@@ -609,7 +694,6 @@ function kindertoys_cart_drawer_items(): void
     echo '<footer class="kt-cart-drawer__foot">';
     echo '<div><span>' . esc_html__('סה"כ ביניים', 'kindertoys') . '</span><strong>' . wp_kses_post(WC()->cart->get_cart_subtotal()) . '</strong></div>';
     echo '<a class="kt-button" href="' . esc_url(wc_get_checkout_url()) . '">' . esc_html__('לתשלום', 'kindertoys') . '</a>';
-    echo '<a class="kt-button kt-button--light" href="' . esc_url(wc_get_cart_url()) . '">' . esc_html__('צפייה ועריכה בסל', 'kindertoys') . '</a>';
     echo '<button class="kt-save-cart-button" type="button" data-save-cart>' . esc_html__('שמירת הסל להמשך', 'kindertoys') . '</button>';
     echo '<div class="kt-save-cart-result" data-save-cart-result hidden></div>';
     echo '</footer>';

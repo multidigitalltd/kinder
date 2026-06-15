@@ -526,6 +526,38 @@
     }
   });
 
+  document.addEventListener("submit", async (event) => {
+    const form = event.target.closest("[data-waitlist-form]");
+    if (!form || !ajax.ajaxUrl || !ajax.nonce) {
+      return;
+    }
+
+    event.preventDefault();
+    const button = form.querySelector("button[type='submit']");
+    button && (button.disabled = true);
+    const body = new URLSearchParams(new FormData(form));
+    body.set("action", "kindertoys_waitlist_signup");
+    body.set("nonce", ajax.nonce);
+
+    try {
+      const response = await fetch(ajax.ajaxUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+      const result = await response.json();
+      if (result?.success) {
+        form.reset();
+        showToast(result.data?.message || "נרשמתם לרשימת ההמתנה", "success");
+      } else {
+        showToast(result?.data?.message || ajax.i18n?.error || "לא הצלחנו לשמור את ההרשמה", "error");
+      }
+    } finally {
+      button && (button.disabled = false);
+    }
+  });
+
   const hideSearchResults = () => {
     if (!searchInput || !searchResults) {
       return;

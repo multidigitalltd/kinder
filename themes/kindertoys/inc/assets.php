@@ -85,10 +85,12 @@ function kindertoys_enqueue_inline_settings_css(): void
     $body_font = kindertoys_css_font_name($body_font, 'Ploni');
     $display_font = kindertoys_css_font_name($display_font, 'PloniYad');
     $fallback = kindertoys_css_font_stack($fallback, '"Ploni", "Arial", system-ui, sans-serif');
+    $body_regular_url = (string) kindertoys_setting('body_font_regular_url', '');
+    $body_medium_url = (string) kindertoys_setting('body_font_medium_url', '');
 
     $css = '';
-    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_regular_url', ''), 400);
-    $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_medium_url', ''), 500);
+    $css .= kindertoys_font_face_css($body_font, $body_regular_url, 400);
+    $css .= kindertoys_font_face_css($body_font, '' !== trim($body_medium_url) ? $body_medium_url : $body_regular_url, 500);
     $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_semibold_url', ''), 600);
     $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_bold_url', ''), 700);
     $css .= kindertoys_font_face_css($body_font, (string) kindertoys_setting('body_font_black_url', ''), 900);

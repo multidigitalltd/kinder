@@ -38,22 +38,46 @@ body {
   background: var(--kt-surface);
   color: var(--kt-text);
   font-family: var(--kt-font);
-  font-weight: 400;
+  font-weight: 500;
   font-size: 16px;
   line-height: 1.55;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: auto;
 }
 
 h1,
 h2,
 h3,
+h4,
+h5,
+h6,
 .kt-logo,
 .kt-button,
+.button,
 .woocommerce-products-header__title,
-.product_title {
+.product_title,
+.woocommerce-loop-product__title {
   font-family: var(--kt-display-font);
   font-weight: 900;
+}
+
+p,
+li,
+dt,
+dd,
+td,
+th,
+label,
+small,
+input,
+select,
+textarea {
+  font-weight: 500;
+}
+
+strong,
+b {
+  font-weight: 800;
 }
 
 img,

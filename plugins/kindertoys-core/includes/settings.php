@@ -62,6 +62,9 @@ function kindertoys_core_default_settings(): array
         'featured_category_ids' => [],
         'featured_product_ids' => [],
         'free_shipping_threshold' => '299',
+        'free_shipping_hint_text' => 'עוד מוצר קטן יכול לסגור את הפינה.',
+        'product_badge_sale_text' => '',
+        'product_badge_category_rules' => '',
         'schema_shipping_country' => 'IL',
         'schema_return_days' => '14',
         'saved_cart_webhook_url' => '',
@@ -236,6 +239,11 @@ function kindertoys_core_sanitize_settings(mixed $input): array
             continue;
         }
 
+        if (in_array($key, ['product_badge_category_rules'], true)) {
+            $output[$key] = sanitize_textarea_field((string) $value);
+            continue;
+        }
+
         if (str_ends_with($key, '_url') || str_ends_with($key, '_image')) {
             $output[$key] = esc_url_raw((string) $value);
             continue;
@@ -265,7 +273,16 @@ function kindertoys_core_render_settings_page(): void
         <form method="post" action="options.php">
             <?php settings_fields('kindertoys_core_settings_group'); ?>
 
-            <h2><?php esc_html_e('Brand and header', 'kindertoys-core'); ?></h2>
+            <nav class="nav-tab-wrapper kt-admin-tabs" aria-label="<?php esc_attr_e('Settings sections', 'kindertoys-core'); ?>">
+                <a class="nav-tab nav-tab-active" href="#kt-tab-brand"><?php esc_html_e('Brand and header', 'kindertoys-core'); ?></a>
+                <a class="nav-tab" href="#kt-tab-home"><?php esc_html_e('Home', 'kindertoys-core'); ?></a>
+                <a class="nav-tab" href="#kt-tab-commerce"><?php esc_html_e('Commerce', 'kindertoys-core'); ?></a>
+                <a class="nav-tab" href="#kt-tab-badges"><?php esc_html_e('Product badges', 'kindertoys-core'); ?></a>
+                <a class="nav-tab" href="#kt-tab-promos"><?php esc_html_e('Promo banners', 'kindertoys-core'); ?></a>
+                <a class="nav-tab" href="#kt-tab-footer"><?php esc_html_e('Footer', 'kindertoys-core'); ?></a>
+            </nav>
+
+            <section id="kt-tab-brand" class="kt-admin-tab-panel">
             <table class="form-table" role="presentation">
                 <?php kindertoys_core_text_field($settings, 'body_font_family', __('Body font name', 'kindertoys-core'), 'Example: Ploni'); ?>
                 <?php kindertoys_core_text_field($settings, 'body_font_regular_url', __('Body regular font URL - 400', 'kindertoys-core')); ?>
@@ -286,8 +303,9 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'whatsapp', __('WhatsApp number', 'kindertoys-core'), 'International format, digits only. Example: 97235293383'); ?>
                 <?php kindertoys_core_text_field($settings, 'search_placeholder', __('Search placeholder', 'kindertoys-core')); ?>
             </table>
+            </section>
 
-            <h2><?php esc_html_e('Home hero', 'kindertoys-core'); ?></h2>
+            <section id="kt-tab-home" class="kt-admin-tab-panel" hidden>
             <table class="form-table" role="presentation">
                 <?php kindertoys_core_text_field($settings, 'hero_eyebrow', __('Hero eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'hero_title_prefix', __('Hero title prefix', 'kindertoys-core')); ?>
@@ -310,19 +328,33 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'products_eyebrow', __('Products eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'products_title', __('Products title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_featured_products_fields($settings); ?>
-                <?php kindertoys_core_text_field($settings, 'free_shipping_threshold', __('Free shipping threshold', 'kindertoys-core'), 'Cart drawer and cart page progress amount. Use 0 to hide.'); ?>
-                <?php kindertoys_core_text_field($settings, 'schema_shipping_country', __('Schema shipping country', 'kindertoys-core'), 'ISO country code, for example IL.'); ?>
-                <?php kindertoys_core_text_field($settings, 'schema_return_days', __('Schema return days', 'kindertoys-core'), 'Used for Product merchant listing return policy.'); ?>
-                <?php kindertoys_core_text_field($settings, 'saved_cart_webhook_url', __('Saved cart webhook URL', 'kindertoys-core'), 'Optional. Called when a customer saves a cart.'); ?>
-                <?php kindertoys_core_text_field($settings, 'saved_cart_email_to', __('Saved cart email recipient', 'kindertoys-core'), 'Optional. Leave empty to use the site admin email.'); ?>
-                <?php kindertoys_core_checkout_bump_fields($settings); ?>
                 <?php kindertoys_core_text_field($settings, 'age_eyebrow', __('Age section eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'age_title', __('Age section title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'brands_eyebrow', __('Brands eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'brands_title', __('Brands title', 'kindertoys-core')); ?>
             </table>
+            </section>
 
-            <h2><?php esc_html_e('Promo banners', 'kindertoys-core'); ?></h2>
+            <section id="kt-tab-commerce" class="kt-admin-tab-panel" hidden>
+            <table class="form-table" role="presentation">
+                <?php kindertoys_core_text_field($settings, 'free_shipping_threshold', __('Free shipping threshold', 'kindertoys-core'), 'Cart drawer and cart page progress amount. Use 0 to hide.'); ?>
+                <?php kindertoys_core_text_field($settings, 'free_shipping_hint_text', __('Free shipping helper text', 'kindertoys-core')); ?>
+                <?php kindertoys_core_text_field($settings, 'schema_shipping_country', __('Schema shipping country', 'kindertoys-core'), 'ISO country code, for example IL.'); ?>
+                <?php kindertoys_core_text_field($settings, 'schema_return_days', __('Schema return days', 'kindertoys-core'), 'Used for Product merchant listing return policy.'); ?>
+                <?php kindertoys_core_text_field($settings, 'saved_cart_webhook_url', __('Saved cart webhook URL', 'kindertoys-core'), 'Optional. Called when a customer saves a cart.'); ?>
+                <?php kindertoys_core_text_field($settings, 'saved_cart_email_to', __('Saved cart email recipient', 'kindertoys-core'), 'Optional. Leave empty to use the site admin email.'); ?>
+                <?php kindertoys_core_checkout_bump_fields($settings); ?>
+            </table>
+            </section>
+
+            <section id="kt-tab-badges" class="kt-admin-tab-panel" hidden>
+            <table class="form-table" role="presentation">
+                <?php kindertoys_core_text_field($settings, 'product_badge_sale_text', __('Sale badge text', 'kindertoys-core'), 'Leave empty to hide sale badges.'); ?>
+                <?php kindertoys_core_textarea_field($settings, 'product_badge_category_rules', __('Category badge rules', 'kindertoys-core'), 'One rule per line: category-slug|Badge text. Product-level badge still has priority.'); ?>
+            </table>
+            </section>
+
+            <section id="kt-tab-promos" class="kt-admin-tab-panel" hidden>
             <table class="form-table" role="presentation">
                 <?php kindertoys_core_text_field($settings, 'promo_section_eyebrow', __('Promo section eyebrow', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'promo_section_title', __('Promo section title', 'kindertoys-core')); ?>
@@ -335,8 +367,9 @@ function kindertoys_core_render_settings_page(): void
                     <?php kindertoys_core_text_field($settings, "promo_{$i}_image", __('Image URL', 'kindertoys-core'), 'Leave empty to use the bundled image.'); ?>
                 <?php endfor; ?>
             </table>
+            </section>
 
-            <h2><?php esc_html_e('Footer', 'kindertoys-core'); ?></h2>
+            <section id="kt-tab-footer" class="kt-admin-tab-panel" hidden>
             <table class="form-table" role="presentation">
                 <?php kindertoys_core_text_field($settings, 'footer_about_title', __('Footer about title', 'kindertoys-core')); ?>
                 <?php kindertoys_core_textarea_field($settings, 'footer_about_text', __('Footer about text', 'kindertoys-core')); ?>
@@ -347,6 +380,7 @@ function kindertoys_core_render_settings_page(): void
                 <?php kindertoys_core_text_field($settings, 'footer_shipping_url', __('Footer shipping URL', 'kindertoys-core')); ?>
                 <?php kindertoys_core_text_field($settings, 'footer_bottom_text', __('Footer bottom text', 'kindertoys-core'), 'Leave empty to show copyright and site name.'); ?>
             </table>
+            </section>
 
             <?php submit_button(); ?>
         </form>
@@ -380,6 +414,21 @@ function kindertoys_core_render_settings_page(): void
                         }
                     });
                     frame.open();
+                });
+            });
+
+            const tabs = document.querySelectorAll('.kt-admin-tabs .nav-tab');
+            const panels = document.querySelectorAll('.kt-admin-tab-panel');
+            tabs.forEach((tab) => {
+                tab.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    tabs.forEach((item) => item.classList.remove('nav-tab-active'));
+                    panels.forEach((panel) => { panel.hidden = true; });
+                    tab.classList.add('nav-tab-active');
+                    const target = document.querySelector(tab.getAttribute('href'));
+                    if (target) {
+                        target.hidden = false;
+                    }
                 });
             });
         })();
