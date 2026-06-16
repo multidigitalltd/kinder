@@ -82,6 +82,8 @@ function kindertoys_woocommerce_hooks(): void
     add_action('wp_ajax_nopriv_kindertoys_toggle_checkout_bump', 'kindertoys_ajax_toggle_checkout_bump');
     add_action('wp_ajax_kindertoys_save_cart', 'kindertoys_ajax_save_cart');
     add_action('wp_ajax_nopriv_kindertoys_save_cart', 'kindertoys_ajax_save_cart');
+    add_action('wp_ajax_kindertoys_refresh_nonce', 'kindertoys_ajax_refresh_nonce');
+    add_action('wp_ajax_nopriv_kindertoys_refresh_nonce', 'kindertoys_ajax_refresh_nonce');
     add_action('template_redirect', 'kindertoys_restore_saved_cart');
 }
 
@@ -93,6 +95,22 @@ function kindertoys_woo_wrapper_open(): void
 function kindertoys_woo_wrapper_close(): void
 {
     echo '</main>';
+}
+
+/**
+ * Issue a fresh AJAX nonce for the current session.
+ *
+ * Full-page caches (LiteSpeed, Cloudflare) freeze the localized nonce inside
+ * the cached HTML, so it eventually expires for anonymous visitors and every
+ * AJAX action fails. This endpoint is served from admin-ajax (never page
+ * cached) and mints a current-tick nonce bound to the caller's own session, so
+ * it cannot expose another user's token. The JS fetches it on load before any
+ * action runs. It needs no nonce of its own because issuing a session-bound
+ * CSRF token is not itself a state-changing or sensitive operation.
+ */
+function kindertoys_ajax_refresh_nonce(): void
+{
+    wp_send_json_success(['nonce' => wp_create_nonce('kindertoys_ajax')]);
 }
 
 function kindertoys_product_breadcrumb(): void

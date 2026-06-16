@@ -777,6 +777,26 @@
     }
   });
 
+  // Replace the (possibly page-cached / expired) localized nonce with a fresh
+  // one from an uncached endpoint, so AJAX keeps working behind LiteSpeed /
+  // Cloudflare full-page cache. Runs before the first cart action.
+  const refreshNonce = async () => {
+    if (!ajax.ajaxUrl) {
+      return;
+    }
+    try {
+      const url = new URL(ajax.ajaxUrl);
+      url.searchParams.set("action", "kindertoys_refresh_nonce");
+      const response = await fetch(url.toString(), { credentials: "same-origin", cache: "no-store" });
+      const result = await response.json();
+      if (result?.success && result.data?.nonce) {
+        ajax.nonce = result.data.nonce;
+      }
+    } catch (error) {
+      // Keep the localized nonce as a best-effort fallback.
+    }
+  };
+
   syncWishlistButtons();
-  refreshCart();
+  refreshNonce().then(refreshCart);
 })();
