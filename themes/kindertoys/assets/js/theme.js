@@ -16,6 +16,52 @@
   let searchTimer = null;
   let lastSearch = "";
 
+  // Focus management for modal drawers: trap Tab within the open dialog and
+  // restore focus to the trigger on close (WCAG 2.4.3 / 2.1.2).
+  let trapHandler = null;
+  let trapReturnFocus = null;
+
+  const focusableIn = (container) =>
+    Array.from(
+      container.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter((el) => el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement);
+
+  const trapFocus = (panel) => {
+    trapReturnFocus = document.activeElement;
+    trapHandler = (event) => {
+      if (event.key !== "Tab") {
+        return;
+      }
+      const items = focusableIn(panel);
+      if (!items.length) {
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", trapHandler, true);
+  };
+
+  const releaseFocus = () => {
+    if (trapHandler) {
+      document.removeEventListener("keydown", trapHandler, true);
+      trapHandler = null;
+    }
+    if (trapReturnFocus && typeof trapReturnFocus.focus === "function") {
+      trapReturnFocus.focus();
+    }
+    trapReturnFocus = null;
+  };
+
   const closeMenu = () => {
     if (!menuToggle || !nav) {
       return;
@@ -34,7 +80,13 @@
     });
 
     menuCloseEls.forEach((button) => {
-      button.addEventListener("click", closeMenu);
+      button.addEventListener("click", () => {
+        const wasOpen = nav.classList.contains("is-open");
+        closeMenu();
+        if (wasOpen) {
+          menuToggle.focus();
+        }
+      });
     });
   }
 
@@ -94,19 +146,22 @@
     if (!cartDrawer) {
       return;
     }
+    closeWishlist();
     cartDrawer.classList.add("is-open");
     cartDrawer.setAttribute("aria-hidden", "false");
     document.documentElement.classList.add("kt-cart-open");
+    trapFocus(cartDrawer.querySelector('[role="dialog"]') || cartDrawer);
     cartDrawer.querySelector("[data-cart-drawer-close]")?.focus();
   };
 
   const closeCart = () => {
-    if (!cartDrawer) {
+    if (!cartDrawer || !cartDrawer.classList.contains("is-open")) {
       return;
     }
     cartDrawer.classList.remove("is-open");
     cartDrawer.setAttribute("aria-hidden", "true");
     document.documentElement.classList.remove("kt-cart-open");
+    releaseFocus();
   };
 
   const wishlistKey = "kindertoys_wishlist";
@@ -155,20 +210,23 @@
     if (!wishlistDrawer) {
       return;
     }
+    closeCart();
     loadWishlist();
     wishlistDrawer.classList.add("is-open");
     wishlistDrawer.setAttribute("aria-hidden", "false");
     document.documentElement.classList.add("kt-wishlist-open");
+    trapFocus(wishlistDrawer.querySelector('[role="dialog"]') || wishlistDrawer);
     wishlistDrawer.querySelector("[data-wishlist-close]")?.focus();
   };
 
   const closeWishlist = () => {
-    if (!wishlistDrawer) {
+    if (!wishlistDrawer || !wishlistDrawer.classList.contains("is-open")) {
       return;
     }
     wishlistDrawer.classList.remove("is-open");
     wishlistDrawer.setAttribute("aria-hidden", "true");
     document.documentElement.classList.remove("kt-wishlist-open");
+    releaseFocus();
   };
 
   cartOpeners.forEach((opener) => {
@@ -615,6 +673,43 @@
     }
   });
 
+  // Keyboard navigation for the live-search listbox (WCAG 2.1.1).
+  const searchResultLinks = () =>
+    searchResults ? Array.from(searchResults.querySelectorAll("a")) : [];
+
+  searchInput?.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowDown" || !searchResults || searchResults.hidden) {
+      return;
+    }
+    const links = searchResultLinks();
+    if (links.length) {
+      event.preventDefault();
+      links[0].focus();
+    }
+  });
+
+  searchResults?.addEventListener("keydown", (event) => {
+    const links = searchResultLinks();
+    if (!links.length) {
+      return;
+    }
+    const index = links.indexOf(document.activeElement);
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      (links[index + 1] || links[0]).focus();
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (index <= 0) {
+        searchInput?.focus();
+      } else {
+        links[index - 1].focus();
+      }
+    } else if (event.key === "Escape") {
+      hideSearchResults();
+      searchInput?.focus();
+    }
+  });
+
   document.addEventListener("click", (event) => {
     if (searchForm && !searchForm.contains(event.target)) {
       hideSearchResults();
@@ -626,10 +721,14 @@
       return;
     }
 
+    const menuWasOpen = nav && nav.classList.contains("is-open");
     closeMenu();
     closeCart();
     closeWishlist();
     hideSearchResults();
+    if (menuWasOpen && menuToggle) {
+      menuToggle.focus();
+    }
   });
 
   syncWishlistButtons();
