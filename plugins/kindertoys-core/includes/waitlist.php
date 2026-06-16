@@ -11,21 +11,30 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-const KINDERTOYS_CORE_WAITLIST_OPTION = 'kindertoys_core_waitlist';
-
-function kindertoys_core_get_waitlist(): array
-{
-    $waitlist = get_option(KINDERTOYS_CORE_WAITLIST_OPTION, []);
-
-    return is_array($waitlist) ? $waitlist : [];
-}
+/**
+ * Waitlist entries are stored per product in post meta (not in one global
+ * option), so a signup only reads/writes that product's small list. This
+ * avoids the unbounded single blob and the cross-product race that could drop
+ * unrelated entries.
+ */
+const KINDERTOYS_CORE_WAITLIST_META = '_kindertoys_waitlist';
 
 function kindertoys_core_get_waitlist_for_product(int $product_id): array
 {
-    $waitlist = kindertoys_core_get_waitlist();
-    $items = $waitlist[$product_id] ?? [];
+    $items = get_post_meta($product_id, KINDERTOYS_CORE_WAITLIST_META, true);
 
     return is_array($items) ? $items : [];
+}
+
+function kindertoys_core_save_waitlist_for_product(int $product_id, array $items): void
+{
+    if (empty($items)) {
+        delete_post_meta($product_id, KINDERTOYS_CORE_WAITLIST_META);
+
+        return;
+    }
+
+    update_post_meta($product_id, KINDERTOYS_CORE_WAITLIST_META, $items);
 }
 
 function kindertoys_core_waitlist_add(int $product_id, string $name, string $email): bool
@@ -35,7 +44,6 @@ function kindertoys_core_waitlist_add(int $product_id, string $name, string $ema
         return false;
     }
 
-    $waitlist = kindertoys_core_get_waitlist();
     $items = kindertoys_core_get_waitlist_for_product($product_id);
     $email_key = sanitize_email($email);
 
@@ -46,22 +54,17 @@ function kindertoys_core_waitlist_add(int $product_id, string $name, string $ema
         'notified_at' => 0,
     ];
 
-    $waitlist[$product_id] = $items;
+    kindertoys_core_save_waitlist_for_product($product_id, $items);
 
-    return update_option(KINDERTOYS_CORE_WAITLIST_OPTION, $waitlist, false);
+    return true;
 }
 
-add_action('wp_ajax_kindertoys_waitlist_signup', 'kindertoys_core_ajax_waitlist_signup');
-add_action('wp_ajax_nopriv_kindertoys_waitlist_signup', 'kindertoys_core_ajax_waitlist_signup');
 function kindertoys_core_client_ip(): string
 {
-    if (class_exists('WC_Geolocation')) {
-        $ip = WC_Geolocation::get_ip_address();
-        if ('' !== $ip) {
-            return $ip;
-        }
-    }
-
+    // Use the TCP peer (REMOTE_ADDR) only. Proxy headers such as
+    // X-Forwarded-For / X-Real-IP are client-spoofable, so trusting them would
+    // let a bot rotate the value and mint a fresh rate-limit key per request.
+    // Behind a CDN, restore the real visitor IP into REMOTE_ADDR at the edge.
     return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
 }
 
@@ -84,6 +87,8 @@ function kindertoys_core_rate_limit(string $bucket, int $limit, int $window): bo
     return true;
 }
 
+add_action('wp_ajax_kindertoys_waitlist_signup', 'kindertoys_core_ajax_waitlist_signup');
+add_action('wp_ajax_nopriv_kindertoys_waitlist_signup', 'kindertoys_core_ajax_waitlist_signup');
 function kindertoys_core_ajax_waitlist_signup(): void
 {
     check_ajax_referer('kindertoys_ajax', 'nonce');
@@ -117,14 +122,51 @@ function kindertoys_core_ajax_waitlist_signup(): void
     wp_send_json_success(['message' => __('נרשמתם. נעדכן אתכם כשהמוצר יחזור למלאי.', 'kindertoys-core')]);
 }
 
-add_action('woocommerce_product_set_stock_status', 'kindertoys_core_notify_waitlist_on_stock', 10, 3);
-function kindertoys_core_notify_waitlist_on_stock(int $product_id, string $stock_status, WC_Product $product): void
+/**
+ * When a product comes back in stock, queue a background job instead of
+ * sending every email inline (which would block the request that flipped the
+ * stock status, e.g. an order, restock or CSV import).
+ */
+add_action('woocommerce_product_set_stock_status', 'kindertoys_core_queue_waitlist_notify', 10, 2);
+function kindertoys_core_queue_waitlist_notify(int $product_id, string $stock_status): void
 {
     if ('instock' !== $stock_status) {
         return;
     }
 
-    $waitlist = kindertoys_core_get_waitlist();
+    if (empty(kindertoys_core_get_waitlist_for_product($product_id))) {
+        return;
+    }
+
+    kindertoys_core_schedule_waitlist_batch($product_id);
+}
+
+function kindertoys_core_schedule_waitlist_batch(int $product_id): void
+{
+    $args = [$product_id];
+
+    if (function_exists('as_enqueue_async_action') && function_exists('as_next_scheduled_action')) {
+        if (! as_next_scheduled_action('kindertoys_core_waitlist_batch', $args, 'kindertoys')) {
+            as_enqueue_async_action('kindertoys_core_waitlist_batch', $args, 'kindertoys');
+        }
+
+        return;
+    }
+
+    if (! wp_next_scheduled('kindertoys_core_waitlist_batch', $args)) {
+        wp_schedule_single_event(time() + 30, 'kindertoys_core_waitlist_batch', $args);
+    }
+}
+
+add_action('kindertoys_core_waitlist_batch', 'kindertoys_core_run_waitlist_batch', 10, 1);
+function kindertoys_core_run_waitlist_batch($product_id): void
+{
+    $product_id = absint($product_id);
+    $product = $product_id > 0 ? wc_get_product($product_id) : null;
+    if (! $product instanceof WC_Product || ! $product->is_in_stock()) {
+        return;
+    }
+
     $items = kindertoys_core_get_waitlist_for_product($product_id);
     if (empty($items)) {
         return;
@@ -136,8 +178,17 @@ function kindertoys_core_notify_waitlist_on_stock(int $product_id, string $stock
     $subject_template = (string) kindertoys_core_get_setting('waitlist_email_subject', 'המוצר {product} חזר למלאי');
     $body_template = (string) kindertoys_core_get_setting('waitlist_email_body', "היי {name},\n\nהמוצר {product} חזר למלאי ואפשר להשלים הזמנה כאן:\n{url}");
 
+    $batch_limit = 25;
+    $sent = 0;
+    $remaining = 0;
+
     foreach ($items as $email => $item) {
         if (! empty($item['notified_at']) || ! is_email((string) $email)) {
+            continue;
+        }
+
+        if ($sent >= $batch_limit) {
+            $remaining++;
             continue;
         }
 
@@ -148,15 +199,18 @@ function kindertoys_core_notify_waitlist_on_stock(int $product_id, string $stock
             '{url}' => $product_url,
             '{site}' => $site,
         ];
-        $subject = strtr($subject_template, $replacements);
-        $message = strtr($body_template, $replacements);
 
-        wp_mail((string) $email, $subject, $message);
+        wp_mail((string) $email, strtr($subject_template, $replacements), strtr($body_template, $replacements));
         $items[$email]['notified_at'] = time();
+        $sent++;
     }
 
-    $waitlist[$product_id] = $items;
-    update_option(KINDERTOYS_CORE_WAITLIST_OPTION, $waitlist, false);
+    kindertoys_core_save_waitlist_for_product($product_id, $items);
+
+    // More recipients than the batch cap: schedule another pass.
+    if ($remaining > 0) {
+        kindertoys_core_schedule_waitlist_batch($product_id);
+    }
 }
 
 add_action('admin_menu', 'kindertoys_core_register_waitlist_page');
@@ -178,7 +232,15 @@ function kindertoys_core_render_waitlist_page(): void
         return;
     }
 
-    $waitlist = kindertoys_core_get_waitlist();
+    $product_ids = get_posts([
+        'post_type'              => 'product',
+        'post_status'            => 'any',
+        'posts_per_page'         => 200,
+        'fields'                 => 'ids',
+        'meta_key'               => KINDERTOYS_CORE_WAITLIST_META,
+        'no_found_rows'          => true,
+        'update_post_term_cache' => false,
+    ]);
     ?>
     <div class="wrap">
         <h1><?php esc_html_e('רשימת המתנה למוצרים שאזלו', 'kindertoys-core'); ?></h1>
@@ -193,13 +255,13 @@ function kindertoys_core_render_waitlist_page(): void
                 </tr>
             </thead>
             <tbody>
-                <?php if (empty($waitlist)) : ?>
+                <?php if (empty($product_ids)) : ?>
                     <tr><td colspan="5"><?php esc_html_e('עדיין אין נרשמים.', 'kindertoys-core'); ?></td></tr>
                 <?php endif; ?>
-                <?php foreach ($waitlist as $product_id => $items) : ?>
-                    <?php foreach ((array) $items as $item) : ?>
+                <?php foreach ($product_ids as $product_id) : ?>
+                    <?php foreach (kindertoys_core_get_waitlist_for_product((int) $product_id) as $item) : ?>
                         <tr>
-                            <td><a href="<?php echo esc_url(get_edit_post_link((int) $product_id)); ?>"><?php echo esc_html(get_the_title((int) $product_id)); ?></a></td>
+                            <td><a href="<?php echo esc_url((string) get_edit_post_link((int) $product_id)); ?>"><?php echo esc_html(get_the_title((int) $product_id)); ?></a></td>
                             <td><?php echo esc_html((string) ($item['name'] ?? '')); ?></td>
                             <td><a href="mailto:<?php echo esc_attr((string) ($item['email'] ?? '')); ?>"><?php echo esc_html((string) ($item['email'] ?? '')); ?></a></td>
                             <td><?php echo ! empty($item['created_at']) ? esc_html(wp_date('d/m/Y H:i', (int) $item['created_at'])) : ''; ?></td>

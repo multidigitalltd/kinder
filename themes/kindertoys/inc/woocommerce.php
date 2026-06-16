@@ -811,13 +811,10 @@ function kindertoys_saved_cart_payload(): array
 
 function kindertoys_client_ip(): string
 {
-    if (class_exists('WC_Geolocation')) {
-        $ip = WC_Geolocation::get_ip_address();
-        if ('' !== $ip) {
-            return $ip;
-        }
-    }
-
+    // Use the TCP peer (REMOTE_ADDR) only. Proxy headers such as
+    // X-Forwarded-For / X-Real-IP are client-spoofable, so trusting them would
+    // let a bot rotate the value and mint a fresh rate-limit key per request.
+    // Behind a CDN, restore the real visitor IP into REMOTE_ADDR at the edge.
     return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
 }
 
