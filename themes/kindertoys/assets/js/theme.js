@@ -455,6 +455,27 @@
     }
   });
 
+  document.addEventListener("change", (event) => {
+    const toggle = event.target.closest("[data-save-cart-email-toggle]");
+    if (!toggle) {
+      return;
+    }
+
+    const field = document.querySelector(".kt-save-cart-email");
+    const input = field?.querySelector("[data-save-cart-email]");
+    if (!field || !input) {
+      return;
+    }
+
+    field.hidden = !toggle.checked;
+    input.required = toggle.checked;
+    if (toggle.checked) {
+      input.focus();
+    } else {
+      input.value = "";
+    }
+  });
+
   document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-copy-saved-cart]");
     const input = button?.parentElement?.querySelector("input");
@@ -560,6 +581,31 @@
     } finally {
       button && (button.disabled = false);
     }
+  });
+
+  const stickyAtc = document.querySelector("[data-sticky-atc]");
+  const originalAtc = document.querySelector("form.cart .single_add_to_cart_button");
+  if (stickyAtc && originalAtc && "IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const show = !entry.isIntersecting && window.scrollY > 280;
+        stickyAtc.classList.toggle("is-visible", show);
+        stickyAtc.setAttribute("aria-hidden", String(!show));
+      },
+      { threshold: 0.08 }
+    );
+    observer.observe(originalAtc);
+  }
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-sticky-atc-submit]");
+    const original = document.querySelector("form.cart .single_add_to_cart_button");
+    if (!button || !original) {
+      return;
+    }
+
+    event.preventDefault();
+    original.click();
   });
 
   const hideSearchResults = () => {

@@ -49,6 +49,7 @@ function kindertoys_woocommerce_hooks(): void
     add_action('woocommerce_single_product_summary', 'kindertoys_single_product_facts', 25);
     add_action('woocommerce_single_product_summary', 'kindertoys_single_product_highlights', 26);
     add_action('woocommerce_single_product_summary', 'kindertoys_single_out_of_stock_panel', 31);
+    add_action('woocommerce_single_product_summary', 'kindertoys_single_wishlist_button', 32);
     add_action('woocommerce_single_product_summary', 'kindertoys_single_product_trust', 35);
 
     add_filter('woocommerce_product_tabs', 'kindertoys_product_tabs');
@@ -65,6 +66,7 @@ function kindertoys_woocommerce_hooks(): void
 
     add_action('wp_footer', 'kindertoys_cart_drawer', 20);
     add_action('wp_footer', 'kindertoys_wishlist_drawer', 21);
+    add_action('wp_footer', 'kindertoys_sticky_add_to_cart', 22);
 
     add_action('wp_ajax_kindertoys_update_cart_item', 'kindertoys_ajax_update_cart_item');
     add_action('wp_ajax_nopriv_kindertoys_update_cart_item', 'kindertoys_ajax_update_cart_item');
@@ -101,20 +103,47 @@ function kindertoys_product_breadcrumb(): void
         return;
     }
 
-    if (! is_product() || ! function_exists('woocommerce_breadcrumb')) {
+    if (! is_product()) {
         return;
     }
 
     $rendered = true;
+    $items = [
+        [
+            'url' => home_url('/'),
+            'label' => __('ראשי', 'kindertoys'),
+        ],
+    ];
 
-    woocommerce_breadcrumb([
-        'delimiter' => '<span class="kt-breadcrumb__sep" aria-hidden="true">/</span>',
-        'wrap_before' => '<nav class="woocommerce-breadcrumb kt-breadcrumb" aria-label="' . esc_attr__('פירורי לחם', 'kindertoys') . '">',
-        'wrap_after' => '</nav>',
-        'before' => '',
-        'after' => '',
-        'home' => __('ראשי', 'kindertoys'),
-    ]);
+    $terms = get_the_terms(get_the_ID(), 'product_cat');
+    if (is_array($terms) && ! empty($terms)) {
+        usort($terms, static fn (WP_Term $a, WP_Term $b): int => $a->parent <=> $b->parent);
+        $term = end($terms);
+        if ($term instanceof WP_Term) {
+            $items[] = [
+                'url' => get_term_link($term),
+                'label' => $term->name,
+            ];
+        }
+    }
+
+    $items[] = [
+        'url' => '',
+        'label' => get_the_title(),
+    ];
+
+    echo '<nav class="woocommerce-breadcrumb kt-breadcrumb" aria-label="' . esc_attr__('פירורי לחם', 'kindertoys') . '">';
+    foreach ($items as $index => $item) {
+        if ($index > 0) {
+            echo '<span class="kt-breadcrumb__sep" aria-hidden="true">/</span>';
+        }
+        if ('' !== $item['url'] && ! is_wp_error($item['url'])) {
+            echo '<a href="' . esc_url((string) $item['url']) . '">' . esc_html((string) $item['label']) . '</a>';
+        } else {
+            echo '<span aria-current="page">' . esc_html((string) $item['label']) . '</span>';
+        }
+    }
+    echo '</nav>';
 }
 
 function kindertoys_category_bottom_description(): void
@@ -489,6 +518,49 @@ function kindertoys_single_out_of_stock_panel(): void
     <?php
 }
 
+function kindertoys_single_wishlist_button(): void
+{
+    global $product;
+
+    if (! $product instanceof WC_Product) {
+        return;
+    }
+
+    echo '<button class="kt-single-wishlist" type="button" data-wishlist-toggle data-product-id="' . esc_attr((string) $product->get_id()) . '" aria-pressed="false">';
+    echo kindertoys_svg_icon('heart') . '<span>' . esc_html__('שמירה למועדפים', 'kindertoys') . '</span>';
+    echo '</button>';
+}
+
+function kindertoys_sticky_add_to_cart(): void
+{
+    if (! is_product()) {
+        return;
+    }
+
+    global $product;
+    if (! $product instanceof WC_Product) {
+        return;
+    }
+
+    $is_available = $product->is_purchasable() && $product->is_in_stock();
+    ?>
+    <aside class="kt-sticky-atc" data-sticky-atc aria-hidden="true">
+        <div class="kt-sticky-atc__inner">
+            <span class="kt-sticky-atc__thumb"><?php echo $product->get_image('woocommerce_thumbnail'); ?></span>
+            <span class="kt-sticky-atc__body">
+                <strong><?php echo esc_html($product->get_name()); ?></strong>
+                <span><?php echo wp_kses_post($product->get_price_html()); ?></span>
+            </span>
+            <?php if ($is_available) : ?>
+                <button class="kt-button" type="button" data-sticky-atc-submit><?php esc_html_e('הוספה לסל', 'kindertoys'); ?></button>
+            <?php else : ?>
+                <a class="kt-button" href="#primary"><?php esc_html_e('עדכנו אותי כשחוזר', 'kindertoys'); ?></a>
+            <?php endif; ?>
+        </div>
+    </aside>
+    <?php
+}
+
 function kindertoys_stock_html(string $html, WC_Product $product): string
 {
     if ($product->is_in_stock()) {
@@ -587,6 +659,11 @@ function kindertoys_product_tabs(array $tabs): array
         return $tabs;
     }
 
+    if (isset($tabs['description'])) {
+        $tabs['description']['title'] = __('תיאור', 'kindertoys');
+        $tabs['description']['priority'] = 10;
+    }
+
     $in_box = kindertoys_core_get_product_meta_lines($product, 'in_box');
 
     if (! empty($in_box)) {
@@ -596,6 +673,18 @@ function kindertoys_product_tabs(array $tabs): array
             'callback' => 'kindertoys_in_box_tab',
         ];
     }
+
+    $tabs['kindertoys_shipping'] = [
+        'title' => __('משלוחים והחזרות', 'kindertoys'),
+        'priority' => 50,
+        'callback' => 'kindertoys_shipping_tab',
+    ];
+
+    $tabs['kindertoys_faq'] = [
+        'title' => __('שאלות נפוצות', 'kindertoys'),
+        'priority' => 60,
+        'callback' => 'kindertoys_faq_tab',
+    ];
 
     return $tabs;
 }
@@ -613,6 +702,24 @@ function kindertoys_in_box_tab(): void
         echo '<li>' . kindertoys_svg_icon('gift') . '<span>' . esc_html($item) . '</span></li>';
     }
     echo '</ul></div>';
+}
+
+function kindertoys_shipping_tab(): void
+{
+    echo '<div class="kt-info-tab">';
+    echo '<p>' . esc_html__('משלוח מהיר עד הבית, ומשלוח חינם בהזמנות מעל 299 ש"ח בהתאם למדיניות האתר.', 'kindertoys') . '</p>';
+    echo '<p>' . esc_html__('ניתן להחזיר מוצרים שלא נפתחו בתוך 14 יום, בהתאם לתנאי ההחזרה והשירות.', 'kindertoys') . '</p>';
+    echo '</div>';
+}
+
+function kindertoys_faq_tab(): void
+{
+    echo '<div class="kt-info-tab">';
+    echo '<h3>' . esc_html__('המוצר מתאים כמתנה?', 'kindertoys') . '</h3>';
+    echo '<p>' . esc_html__('כן. מומלץ לבדוק את גיל היעד ופרטי המוצר לפני ההזמנה.', 'kindertoys') . '</p>';
+    echo '<h3>' . esc_html__('איך יודעים שהמוצר במלאי?', 'kindertoys') . '</h3>';
+    echo '<p>' . esc_html__('אם ניתן להוסיף את המוצר לסל, הוא זמין להזמנה. אם אזל מהמלאי אפשר להירשם לעדכון.', 'kindertoys') . '</p>';
+    echo '</div>';
 }
 
 function kindertoys_cart_fragments(array $fragments): array
@@ -725,7 +832,8 @@ function kindertoys_cart_drawer_items(): void
     echo '<footer class="kt-cart-drawer__foot">';
     echo '<div><span>' . esc_html__('סה"כ ביניים', 'kindertoys') . '</span><strong>' . wp_kses_post(WC()->cart->get_cart_subtotal()) . '</strong></div>';
     echo '<a class="kt-button" href="' . esc_url(wc_get_checkout_url()) . '">' . esc_html__('לתשלום', 'kindertoys') . '</a>';
-    echo '<label class="kt-save-cart-email"><span>' . esc_html__('שליחת קישור הסל לאימייל', 'kindertoys') . '</span><input type="email" data-save-cart-email autocomplete="email" placeholder="' . esc_attr__('your@email.com', 'kindertoys') . '"></label>';
+    echo '<label class="kt-save-cart-email-toggle"><input type="checkbox" data-save-cart-email-toggle><span>' . esc_html__('שלחו לי את קישור הסל למייל', 'kindertoys') . '</span></label>';
+    echo '<label class="kt-save-cart-email" hidden><span>' . esc_html__('אימייל לשליחת הקישור', 'kindertoys') . '</span><input type="email" data-save-cart-email autocomplete="email" placeholder="' . esc_attr__('your@email.com', 'kindertoys') . '"></label>';
     echo '<button class="kt-save-cart-button" type="button" data-save-cart>' . esc_html__('שמירת הסל להמשך', 'kindertoys') . '</button>';
     echo '<div class="kt-save-cart-result" data-save-cart-result hidden></div>';
     echo '</footer>';

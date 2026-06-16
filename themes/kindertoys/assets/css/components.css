@@ -936,6 +936,25 @@
   font-weight: 900;
 }
 
+.kt-save-cart-email[hidden] {
+  display: none;
+}
+
+.kt-save-cart-email-toggle {
+  display: flex;
+  gap: .45rem;
+  align-items: center;
+  color: var(--kt-navy);
+  font-size: .86rem;
+  font-weight: 900;
+}
+
+.kt-save-cart-email-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--kt-red);
+}
+
 .kt-save-cart-email input {
   width: 100%;
   min-height: 42px;
