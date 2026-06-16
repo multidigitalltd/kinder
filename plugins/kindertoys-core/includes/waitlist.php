@@ -53,9 +53,49 @@ function kindertoys_core_waitlist_add(int $product_id, string $name, string $ema
 
 add_action('wp_ajax_kindertoys_waitlist_signup', 'kindertoys_core_ajax_waitlist_signup');
 add_action('wp_ajax_nopriv_kindertoys_waitlist_signup', 'kindertoys_core_ajax_waitlist_signup');
+function kindertoys_core_client_ip(): string
+{
+    if (class_exists('WC_Geolocation')) {
+        $ip = WC_Geolocation::get_ip_address();
+        if ('' !== $ip) {
+            return $ip;
+        }
+    }
+
+    return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+}
+
+/**
+ * Lightweight per-IP rate limit for public AJAX actions.
+ *
+ * @return bool True when the request is allowed, false when the limit is reached.
+ */
+function kindertoys_core_rate_limit(string $bucket, int $limit, int $window): bool
+{
+    $key = 'kt_rl_' . md5($bucket . '|' . kindertoys_core_client_ip());
+    $count = (int) get_transient($key);
+
+    if ($count >= $limit) {
+        return false;
+    }
+
+    set_transient($key, $count + 1, $window);
+
+    return true;
+}
+
 function kindertoys_core_ajax_waitlist_signup(): void
 {
     check_ajax_referer('kindertoys_ajax', 'nonce');
+
+    // Honeypot: a real user never fills this hidden field; reject silently so bots get a success-looking reply.
+    if (! empty($_POST['kt_hp_url'])) {
+        wp_send_json_success(['message' => __('נרשמתם. נעדכן אתכם כשהמוצר יחזור למלאי.', 'kindertoys-core')]);
+    }
+
+    if (! kindertoys_core_rate_limit('waitlist', 5, 10 * MINUTE_IN_SECONDS)) {
+        wp_send_json_error(['message' => __('יותר מדי בקשות. נסו שוב בעוד כמה דקות.', 'kindertoys-core')], 429);
+    }
 
     $product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
     $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash((string) $_POST['name'])) : '';

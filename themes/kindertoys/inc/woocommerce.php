@@ -471,6 +471,9 @@ function kindertoys_single_out_of_stock_panel(): void
         <span><?php esc_html_e('השאירו פרטים ונעדכן אתכם ברגע שהוא חוזר.', 'kindertoys'); ?></span>
         <form data-waitlist-form>
             <input type="hidden" name="product_id" value="<?php echo esc_attr((string) $product->get_id()); ?>">
+            <div class="kt-hp" aria-hidden="true">
+                <label><?php esc_html_e('אל תמלאו שדה זה', 'kindertoys'); ?><input type="text" name="kt_hp_url" tabindex="-1" autocomplete="off" value=""></label>
+            </div>
             <label>
                 <span class="screen-reader-text"><?php esc_html_e('שם מלא', 'kindertoys'); ?></span>
                 <input type="text" name="name" autocomplete="name" placeholder="<?php esc_attr_e('שם מלא', 'kindertoys'); ?>" required>
@@ -806,12 +809,47 @@ function kindertoys_saved_cart_payload(): array
     return $items;
 }
 
+function kindertoys_client_ip(): string
+{
+    if (class_exists('WC_Geolocation')) {
+        $ip = WC_Geolocation::get_ip_address();
+        if ('' !== $ip) {
+            return $ip;
+        }
+    }
+
+    return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+}
+
+/**
+ * Lightweight per-IP rate limit for public AJAX actions.
+ *
+ * @return bool True when the request is allowed, false when the limit is reached.
+ */
+function kindertoys_rate_limit(string $bucket, int $limit, int $window): bool
+{
+    $key = 'kt_rl_' . md5($bucket . '|' . kindertoys_client_ip());
+    $count = (int) get_transient($key);
+
+    if ($count >= $limit) {
+        return false;
+    }
+
+    set_transient($key, $count + 1, $window);
+
+    return true;
+}
+
 function kindertoys_ajax_save_cart(): void
 {
     check_ajax_referer('kindertoys_ajax', 'nonce');
 
     if (! function_exists('WC') || ! WC()->cart || WC()->cart->is_empty()) {
         wp_send_json_error(['message' => __('אין מוצרים בסל לשמירה.', 'kindertoys')], 400);
+    }
+
+    if (! kindertoys_rate_limit('save_cart', 5, 10 * MINUTE_IN_SECONDS)) {
+        wp_send_json_error(['message' => __('יותר מדי בקשות. נסו שוב בעוד כמה דקות.', 'kindertoys')], 429);
     }
 
     $token = wp_generate_password(24, false, false);

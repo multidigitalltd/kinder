@@ -166,6 +166,14 @@ textarea {
   border: 0;
 }
 
+.kt-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .skip-link:focus {
   position: fixed;
   z-index: 100000;
