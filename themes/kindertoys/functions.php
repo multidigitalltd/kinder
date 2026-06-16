@@ -11,7 +11,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('KINDERTOYS_THEME_VERSION', '0.3.7');
+define('KINDERTOYS_THEME_VERSION', '0.3.8');
 define('KINDERTOYS_THEME_DIR', get_template_directory());
 define('KINDERTOYS_THEME_URI', get_template_directory_uri());
 

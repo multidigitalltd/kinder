@@ -36,6 +36,24 @@ function kindertoys_enqueue_assets(): void
     ]);
 }
 
+add_action('wp_footer', 'kindertoys_print_ajax_settings', 5);
+function kindertoys_print_ajax_settings(): void
+{
+    $settings = [
+        'ajaxUrl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('kindertoys_ajax'),
+        'cartUrl' => function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/'),
+        'checkoutUrl' => function_exists('wc_get_checkout_url') ? wc_get_checkout_url() : home_url('/checkout/'),
+        'i18n' => [
+            'searching' => __('מחפשים...', 'kindertoys'),
+            'noResults' => __('לא נמצאו תוצאות', 'kindertoys'),
+            'error' => __('משהו לא נטען. נסו שוב.', 'kindertoys'),
+        ],
+    ];
+
+    echo '<script id="kindertoys-ajax-settings">window.kindertoysAjax=' . wp_json_encode($settings) . ';</script>' . "\n";
+}
+
 add_action('wp_head', 'kindertoys_preload_primary_font', 1);
 function kindertoys_preload_primary_font(): void
 {
