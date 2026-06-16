@@ -1011,7 +1011,15 @@ function kindertoys_ajax_save_cart(): void
 
 function kindertoys_restore_saved_cart(): void
 {
-    if (! isset($_GET['kt_restore_cart']) || is_admin() || ! function_exists('WC') || ! WC()->cart) {
+    if (! isset($_GET['kt_restore_cart']) || is_admin() || ! function_exists('WC')) {
+        return;
+    }
+
+    if (null === WC()->cart && function_exists('wc_load_cart')) {
+        wc_load_cart();
+    }
+
+    if (! WC()->cart) {
         return;
     }
 

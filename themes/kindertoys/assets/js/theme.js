@@ -356,7 +356,14 @@
 
   const updateCartMeta = (data) => {
     const drawerItems = document.querySelector("[data-cart-drawer-items]");
-    drawerItems && data.items && (drawerItems.innerHTML = data.items);
+    if (drawerItems && data.items) {
+      drawerItems.innerHTML = data.items;
+      window.setTimeout(() => {
+        if (typeof prepareSaveCartPanel === "function") {
+          prepareSaveCartPanel();
+        }
+      }, 0);
+    }
     document.querySelectorAll("[data-cart-count]").forEach((el) => {
       el.textContent = String(data.count ?? "0");
     });
@@ -473,6 +480,77 @@
     postCartUpdate(item.getAttribute("data-cart-item"), Number.parseInt(input.value || "0", 10));
   });
 
+  const prepareSaveCartPanel = () => {
+    const button = document.querySelector("[data-save-cart]");
+    const field = document.querySelector(".kt-save-cart-email");
+    const input = field?.querySelector("[data-save-cart-email]");
+    if (!button || !field || !input || button.dataset.saveCartPrepared) {
+      return;
+    }
+
+    button.dataset.saveCartPrepared = "1";
+    button.dataset.saveCartReady = "0";
+    field.hidden = true;
+    input.required = false;
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "kt-save-cart-close";
+    close.setAttribute("data-save-cart-close", "");
+    close.setAttribute("aria-label", "סגירת שמירת סל");
+    close.textContent = "סגירה";
+    field.after(close);
+    close.hidden = true;
+  };
+
+  prepareSaveCartPanel();
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target.closest("[data-save-cart]");
+      const field = document.querySelector(".kt-save-cart-email");
+      const close = document.querySelector("[data-save-cart-close]");
+      const input = field?.querySelector("[data-save-cart-email]");
+      if (!button || !field || !input) {
+        return;
+      }
+
+      if (button.dataset.saveCartReady === "1") {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      field.hidden = false;
+      close && (close.hidden = false);
+      input.required = false;
+      button.dataset.saveCartReady = "1";
+      button.textContent = "יצירת קישור לסל";
+      input.focus();
+    },
+    true
+  );
+
+  document.addEventListener("click", (event) => {
+    const close = event.target.closest("[data-save-cart-close]");
+    const button = document.querySelector("[data-save-cart]");
+    const field = document.querySelector(".kt-save-cart-email");
+    const resultBox = document.querySelector("[data-save-cart-result]");
+    const input = field?.querySelector("[data-save-cart-email]");
+    if (!close || !button || !field || !input) {
+      return;
+    }
+
+    event.preventDefault();
+    field.hidden = true;
+    close.hidden = true;
+    resultBox && (resultBox.hidden = true);
+    input.value = "";
+    button.dataset.saveCartReady = "0";
+    button.textContent = "שמירת הסל להמשך";
+  });
+
   document.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-save-cart]");
     const resultBox = document.querySelector("[data-save-cart-result]");
@@ -544,6 +622,55 @@
     try {
       await navigator.clipboard.writeText(input.value);
       showToast("הקישור הועתק", "success");
+    } catch (error) {
+      input.select();
+      showToast("אפשר להעתיק את הקישור מהשדה", "info");
+    }
+  });
+
+  const enhanceSavedCartResult = () => {
+    const resultBox = document.querySelector("[data-save-cart-result]");
+    const input = resultBox?.querySelector("input");
+    if (!resultBox || !input || resultBox.querySelector("[data-share-saved-cart]")) {
+      return;
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "kt-save-cart-result__actions";
+    const share = document.createElement("button");
+    share.type = "button";
+    share.setAttribute("data-share-saved-cart", "");
+    share.textContent = "שיתוף";
+    actions.appendChild(share);
+    resultBox.appendChild(actions);
+  };
+
+  const saveCartResult = document.querySelector("[data-save-cart-result]");
+  if (saveCartResult && "MutationObserver" in window) {
+    new MutationObserver(enhanceSavedCartResult).observe(saveCartResult, { childList: true, subtree: true });
+  }
+
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-share-saved-cart]");
+    const input = document.querySelector("[data-save-cart-result] input");
+    if (!button || !input) {
+      return;
+    }
+
+    event.preventDefault();
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: document.title, url: input.value });
+        showToast("הקישור נפתח לשיתוף", "success");
+        return;
+      } catch (error) {
+        return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(input.value);
+      showToast("הקישור הועתק לשיתוף", "success");
     } catch (error) {
       input.select();
       showToast("אפשר להעתיק את הקישור מהשדה", "info");
