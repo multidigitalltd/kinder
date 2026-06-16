@@ -98,15 +98,19 @@ function kindertoys_woo_wrapper_close(): void
 }
 
 /**
- * Issue a fresh AJAX nonce for the current session.
+ * Issue a fresh AJAX nonce so cached pages keep working.
  *
  * Full-page caches (LiteSpeed, Cloudflare) freeze the localized nonce inside
  * the cached HTML, so it eventually expires for anonymous visitors and every
  * AJAX action fails. This endpoint is served from admin-ajax (never page
- * cached) and mints a current-tick nonce bound to the caller's own session, so
- * it cannot expose another user's token. The JS fetches it on load before any
- * action runs. It needs no nonce of its own because issuing a session-bound
- * CSRF token is not itself a state-changing or sensitive operation.
+ * cached), so the JS can fetch a current-tick nonce on load.
+ *
+ * Security model: for logged-out visitors WordPress nonces are shared per tick
+ * (not per-client) — they provide CSRF friction, not authentication, and the
+ * same token was already exposed in every page's HTML, so this endpoint does
+ * not weaken anything. The real abuse defense for the public write handlers is
+ * the per-IP rate limiting + honeypot they enforce, not this nonce. The
+ * endpoint therefore needs no nonce of its own.
  */
 function kindertoys_ajax_refresh_nonce(): void
 {
