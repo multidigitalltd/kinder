@@ -82,6 +82,8 @@ function kindertoys_woocommerce_hooks(): void
     add_action('wp_ajax_nopriv_kindertoys_toggle_checkout_bump', 'kindertoys_ajax_toggle_checkout_bump');
     add_action('wp_ajax_kindertoys_save_cart', 'kindertoys_ajax_save_cart');
     add_action('wp_ajax_nopriv_kindertoys_save_cart', 'kindertoys_ajax_save_cart');
+    add_action('wp_ajax_kindertoys_refresh_nonce', 'kindertoys_ajax_refresh_nonce');
+    add_action('wp_ajax_nopriv_kindertoys_refresh_nonce', 'kindertoys_ajax_refresh_nonce');
     add_action('template_redirect', 'kindertoys_restore_saved_cart');
 }
 
@@ -93,6 +95,26 @@ function kindertoys_woo_wrapper_open(): void
 function kindertoys_woo_wrapper_close(): void
 {
     echo '</main>';
+}
+
+/**
+ * Issue a fresh AJAX nonce so cached pages keep working.
+ *
+ * Full-page caches (LiteSpeed, Cloudflare) freeze the localized nonce inside
+ * the cached HTML, so it eventually expires for anonymous visitors and every
+ * AJAX action fails. This endpoint is served from admin-ajax (never page
+ * cached), so the JS can fetch a current-tick nonce on load.
+ *
+ * Security model: for logged-out visitors WordPress nonces are shared per tick
+ * (not per-client) — they provide CSRF friction, not authentication, and the
+ * same token was already exposed in every page's HTML, so this endpoint does
+ * not weaken anything. The real abuse defense for the public write handlers is
+ * the per-IP rate limiting + honeypot they enforce, not this nonce. The
+ * endpoint therefore needs no nonce of its own.
+ */
+function kindertoys_ajax_refresh_nonce(): void
+{
+    wp_send_json_success(['nonce' => wp_create_nonce('kindertoys_ajax')]);
 }
 
 function kindertoys_product_breadcrumb(): void
